@@ -49,7 +49,6 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { defineEmits, defineProps } from "vue";
 import { useCompasStore } from "../MapaCalor/store/compasStore"; // Ajustar la ruta según tu estructura
 import { useAuthStore } from "src/stores/authStore";
 import { Notify } from "quasar";

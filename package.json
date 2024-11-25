@@ -6,12 +6,11 @@
   "author": "Omar Suniaga <omareduardo74@gmail.com>",
   "private": true,
   "scripts": {
-    "lint": "eslint --ext .js,.vue ./",
-    "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
-    "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
-    "build": "vue-cli-service build",
-    "serve": "vue-cli-service serve"
+    "build": "quasar build",
+    "build:pwa": "quasar build -m pwa",
+    "predeploy": "quasar build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
@@ -24,6 +23,7 @@
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
+    "@quasar/cli": "^2.4.1",
     "@intlify/vite-plugin-vue-i18n": "^3.3.1",
     "@quasar/app-vite": "^1.9.0",
     "autoprefixer": "^10.4.2",
@@ -32,7 +32,14 @@
     "eslint-plugin-vue": "^9.0.0",
     "postcss": "^8.4.14",
     "prettier": "^2.5.1",
-    "vite-plugin-checker": "^0.8.0"
+    "vite-plugin-checker": "^0.8.0",
+    "workbox-build": "7.0.x",
+    "workbox-cacheable-response": "7.0.x",
+    "workbox-core": "7.0.x",
+    "workbox-expiration": "7.0.x",
+    "workbox-precaching": "7.0.x",
+    "workbox-routing": "7.0.x",
+    "workbox-strategies": "7.0.x"
   },
   "engines": {
     "node": "^20 || ^18 || ^16",
