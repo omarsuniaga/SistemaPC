@@ -6,12 +6,11 @@
   "author": "Omar Suniaga <omareduardo74@gmail.com>",
   "private": true,
   "scripts": {
-    "lint": "eslint --ext .js,.vue ./",
-    "format": "prettier --write \"**/*.{js,vue,scss,html,md,json}\" --ignore-path .gitignore",
-    "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
-    "build": "vue-cli-service build",
-    "serve": "vue-cli-service serve"
+    "build": "quasar build",
+    "build:pwa": "quasar build -m pwa",
+    "predeploy": "quasar build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@quasar/extras": "^1.16.4",
@@ -24,9 +23,9 @@
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
-    "@quasar/cli": "^1.4.3",
     "@intlify/vite-plugin-vue-i18n": "^3.3.1",
     "@quasar/app-vite": "^1.9.0",
+    "@quasar/cli": "^2.4.1",
     "autoprefixer": "^10.4.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.1.0",
