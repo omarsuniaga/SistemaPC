@@ -23,9 +23,9 @@
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
+    "@quasar/cli": "^2.4.1",
     "@intlify/vite-plugin-vue-i18n": "^3.3.1",
     "@quasar/app-vite": "^1.9.0",
-    "@quasar/cli": "^2.4.1",
     "autoprefixer": "^10.4.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.1.0",
