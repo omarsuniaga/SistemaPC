@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Reglas para la colección COMPASES
+    match /COMPASES/{compasId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Reglas para la colección OBRAS
+    match /OBRAS/{obraId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Reglas para la colección HISTORIAL
+    match /HISTORIAL/{historialId} {
+      allow read, write: if request.auth != null;
+    }
+
+    // Puedes agregar reglas más específicas según tus necesidades
+  }
+}

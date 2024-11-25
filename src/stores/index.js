@@ -1,20 +1,9 @@
-import { store } from 'quasar/wrappers'
-import { createPinia } from 'pinia'
+// src/store/index.js
+import { createPinia } from "pinia";
+import { useRepertorioStore } from "../modulos/Repertorio/store/repertorioStore";
+// import { useAsistenciaStore } from "../modulos/Asistencias/store/asistenciaStore";
 
-/*
- * If not building with SSR mode, you can
- * directly export the Store instantiation;
- *
- * The function below can be async too; either use
- * async/await or return a Promise which resolves
- * with the Store instance.
- */
+const pinia = createPinia();
 
-export default store((/* { ssrContext } */) => {
-  const pinia = createPinia()
-
-  // You can add Pinia plugins here
-  // pinia.use(SomePiniaPlugin)
-
-  return pinia
-})
+export { useRepertorioStore };
+export default pinia;

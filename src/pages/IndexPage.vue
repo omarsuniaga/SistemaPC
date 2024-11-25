@@ -1,15 +1,44 @@
+<!-- src/pages/IndexPage.vue -->
 <template>
-  <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
-  </q-page>
+  <div>Loading...</div>
 </template>
 
 <script setup>
-defineOptions({
-  name: 'IndexPage'
+import { useRouter } from "vue-router";
+import { onMounted } from "vue";
+import { useUserStore } from "../stores/userStore";
+
+const router = useRouter();
+const userStore = useUserStore();
+
+onMounted(async () => {
+  await userStore.fetchUser();
+
+  const role = userStore.user?.role;
+  if (userStore.isAuthenticated && role) {
+    switch (role) {
+      case "Director":
+        router.replace({ name: "DirectorHome" });
+        break;
+      case "Administrador":
+        router.replace({ name: "AdminHome" });
+        break;
+      case "Maestro":
+        router.replace({ name: "MaestroHome" });
+        break;
+      case "Alumno":
+      case "Tutor":
+        router.replace({ name: "AlumnoHome" });
+        break;
+      default:
+        router.replace({ name: "Unauthorized" });
+    }
+  } else {
+    router.push({ name: "Login" });
+  }
 });
 </script>
+
+<style scoped>
+/* Estilo de carga si es necesario */
+</style>

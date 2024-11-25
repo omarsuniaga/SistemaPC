@@ -1,29 +1,27 @@
 <template>
-  <div class="fullscreen bg-blue text-white text-center q-pa-md flex flex-center">
-    <div>
-      <div style="font-size: 30vh">
-        404
-      </div>
-
-      <div class="text-h2" style="opacity:.4">
-        Oops. Nothing here...
-      </div>
-
-      <q-btn
-        class="q-mt-xl"
-        color="white"
-        text-color="blue"
-        unelevated
-        to="/"
-        label="Go Home"
-        no-caps
-      />
+  <q-page class="flex flex-center full-height">
+    <div class="error-container">
+      <h1>404 - Página No Encontrada</h1>
+      <p>La página que estás buscando no existe.</p>
+      <q-btn label="Regresar al Inicio" color="primary" @click="goHome" />
     </div>
-  </div>
+  </q-page>
 </template>
 
 <script setup>
-defineOptions({
-  name: 'ErrorNotFound'
-});
+import { useRouter } from "vue-router";
+
+const router = useRouter();
+const goHome = () => {
+  router.push({ name: "Home" });
+};
 </script>
+
+<style scoped>
+.full-height {
+  height: 100vh;
+}
+.error-container {
+  text-align: center;
+}
+</style>

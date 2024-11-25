@@ -1,30 +1,37 @@
-import { route } from 'quasar/wrappers'
-import { createRouter, createMemoryHistory, createWebHistory, createWebHashHistory } from 'vue-router'
-import routes from './routes'
+// src/router/index.js
+import { createRouter, createWebHistory } from "vue-router";
+import routes from "./routes";
+import { useAuthStore } from "src/stores/authStore";
+import repertorioRoutes from "../modulos/Repertorio/routes/repertorioRoutes";
 
-/*
- * If not building with SSR mode, you can
- * directly export the Router instantiation;
- *
- * The function below can be async too; either use
- * async/await or return a Promise which resolves
- * with the Router instance.
- */
+const allRoutes = [
+  ...routes,
+  ...repertorioRoutes, // Agregar las rutas de Repertorio
+];
 
-export default route(function (/* { store, ssrContext } */) {
-  const createHistory = process.env.SERVER
-    ? createMemoryHistory
-    : (process.env.VUE_ROUTER_MODE === 'history' ? createWebHistory : createWebHashHistory)
+const router = createRouter({
+  history: createWebHistory(),
+  routes: allRoutes,
+});
 
-  const Router = createRouter({
-    scrollBehavior: () => ({ left: 0, top: 0 }),
-    routes,
+router.beforeEach(async (to, from, next) => {
+  const userStore = useAuthStore();
 
-    // Leave this as is and make changes in quasar.conf.js instead!
-    // quasar.conf.js -> build -> vueRouterMode
-    // quasar.conf.js -> build -> publicPath
-    history: createHistory(process.env.VUE_ROUTER_BASE)
-  })
+  if (to.meta.requiresAuth && !userStore.isAuthenticated) {
+    await userStore.fetchUser();
+  }
 
-  return Router
-})
+  const isAuthenticated = userStore.isAuthenticated;
+  const userRole = userStore.user?.role;
+
+  // Redirección condicional
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: "Login" });
+  } else if (to.meta.roles && !to.meta.roles.includes(userRole)) {
+    next({ name: "Unauthorized" });
+  } else {
+    next();
+  }
+});
+
+export default router;
