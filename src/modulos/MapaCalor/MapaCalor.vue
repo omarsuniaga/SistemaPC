@@ -1,7 +1,7 @@
 <!-- src/components/MapaCalor.vue -->
 <template>
   <q-dialog v-model="isOpen" persistent>
-    <q-card style="min-width: 700px">
+    <q-card style="width: 90%">
       <q-card-section>
         <div class="header">
           <h3>Mapa de Calor</h3>
@@ -49,7 +49,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
-import { useCompasStore } from "../MapaCalor/store/compasStore"; // Ajustar la ruta según tu estructura
+import { useCompasStore } from "./store/compasStore"; // Ajustar la ruta según tu estructura
 import { useAuthStore } from "src/stores/authStore";
 import { Notify } from "quasar";
 import { STATE_MAP } from "./logica/constants.js"; // Importar el STATE_MAP

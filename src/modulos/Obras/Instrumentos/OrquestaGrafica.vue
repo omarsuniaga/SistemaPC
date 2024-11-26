@@ -45,7 +45,7 @@
 
 <script setup>
 import { ref } from "vue";
-import MapaCalor from "../MapaCalor/MapaCalor.vue"; // Ajustar la ruta según tu estructura
+import MapaCalor from "../../MapaCalor/MapaCalor.vue"; // Ajustar la ruta según tu estructura
 
 // Props
 const props = defineProps({

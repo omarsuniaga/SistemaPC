@@ -35,7 +35,8 @@ module.exports = configure(function (/* ctx */) {
     extras: [
       "roboto-font-latin-ext", // this or either 'roboto-font', NEVER both!
       "roboto-font", // optional, you are not bound to it
-      "material-icons", // optional, you are not bound to it
+      "material-icons", // Asegurado que está incluido
+      "material-icons-outlined", // Nueva variante añadida
     ],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-js#build

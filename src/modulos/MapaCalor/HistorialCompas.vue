@@ -44,8 +44,8 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import { useQuasar } from "quasar";
-import { useObraStore } from "../store/obraStore";
-import { registrarCambioEstado } from "../MapaCalor/service/mapaService";
+import { useObraStore } from "../Obras/store/obraStore";
+import { registrarCambioEstado } from "./service/mapaService";
 
 const $q = useQuasar();
 const obraStore = useObraStore();

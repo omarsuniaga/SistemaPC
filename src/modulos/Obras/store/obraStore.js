@@ -17,7 +17,7 @@ import {
 import {
   addCompas,
   deleteCompasByRange,
-} from "../MapaCalor/service/mapaService"; // Importar métodos de mapaService.js
+} from "../../MapaCalor/service/mapaService"; // Importar métodos de mapaService.js
 
 export const useObraStore = defineStore("obraStore", {
   state: () => ({

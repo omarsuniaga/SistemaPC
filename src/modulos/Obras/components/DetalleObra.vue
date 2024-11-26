@@ -3,24 +3,16 @@
   <q-page class="flex flex-center" style="background-color: #f7f9fc">
     <div class="detalle-obra-container">
       <q-card flat bordered class="detalle-obra-card">
+        <div class="detalle-obra-delete">
+          <q-btn icon="delete" color="negative" @click="eliminarObra" />
+        </div>
         <q-card-section>
           <div class="header-section">
-            <h2 class="obra-title">{{ obra.titulo }}</h2>
-            <div class="actions">
-              <q-btn
-                icon="edit"
-                color="primary"
-                @click="editarObra"
-                round
-                dense
-              />
-              <q-btn
-                icon="delete"
-                color="negative"
-                @click="eliminarObra"
-                round
-                dense
-              />
+            <div class="obra-title">
+              <h4>{{ obra.titulo }}</h4>
+              <div>
+                <q-btn icon="edit" @click="editarObra" fab size="24px" />
+              </div>
             </div>
           </div>
           <div class="obra-details">
@@ -57,7 +49,7 @@
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useCompasStore } from "../MapaCalor/store/compasStore"; // Asegúrate de que la ruta es correcta
+import { useCompasStore } from "../../MapaCalor/store/compasStore"; // Asegúrate de que la ruta es correcta
 import OrquestaGrafica from "../Instrumentos/OrquestaGrafica.vue"; // Ajustar la ruta según tu estructura
 import { Notify } from "quasar";
 
@@ -115,8 +107,8 @@ const eliminarObra = () => {
 <style scoped>
 .detalle-obra-container {
   width: 100%;
-  max-width: 900px;
-  padding: 2rem;
+  padding: 0.5rem;
+  background-color: #2c3e50;
 }
 
 .detalle-obra-card {
@@ -135,12 +127,22 @@ const eliminarObra = () => {
   font-size: 1.75rem;
   font-weight: 700;
   color: #2c3e50;
+  display: flex;
+  justify-content: end;
+  align-items: center;
+  padding-inline-start: 0.5rem;
 }
 
 .actions q-btn {
   margin-left: 0.5rem;
 }
 
+.detalle-obra-delete {
+  display: flex;
+  justify-content: right;
+  padding: 0.5rem;
+  align-items: end;
+}
 .obra-details {
   display: flex;
   flex-wrap: wrap;

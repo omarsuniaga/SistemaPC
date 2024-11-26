@@ -22,30 +22,6 @@ import {
  */
 const COMPASES_COLLECTION = "COMPASES";
 
-// /**
-//  * Obtener compases de una obra específica dentro de un rango de números.
-//  * @param {String} obraId - ID de la obra.
-//  * @param {Number} rangoInicio - Número inicial del rango (inclusive).
-//  * @param {Number} rangoFin - Número final del rango (inclusive).
-//  * @returns {Promise<Array>} - Lista de compases que cumplen con los criterios.
-//  */
-// export const obtenerCompasesPorObra = async (obraId, rangoInicio = 0, rangoFin = 100) => {
-//   try {
-//     const compasesRef = collection(db, COMPASES_COLLECTION);
-//     const q = query(
-//       compasesRef,
-//       where("obraId", "==", obraId),
-//       where("numero", ">=", rangoInicio),
-//       where("numero", "<=", rangoFin)
-//     );
-//     const snapshot = await getDocs(q);
-//     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-//   } catch (error) {
-//     console.error("Error al obtener compases por obra:", error);
-//     return []; // Retornar un array vacío en caso de error
-//   }
-// };
-
 export const deleteCompasByRange = async (obraId, rangoInicio, rangoFin) => {
   try {
     const compasesRef = collection(db, COMPASES_COLLECTION);
