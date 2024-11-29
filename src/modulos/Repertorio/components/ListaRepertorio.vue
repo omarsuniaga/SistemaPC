@@ -25,14 +25,25 @@
                     <q-btn
                         flat
                         icon="visibility"
-                        @click="viewRepertorioDetails(props.row)"
+                        @click="verRepertorio(props.row)"
+                    />
+                    <q-btn
+                        flat
+                        icon="edit"
+                        @click="editarRepertorio(props.row)"
+                    />
+                    <q-btn
+                        flat
+                        icon="delete"
+                        @click="confirmarEliminar(props.row)"
+                        color="negative"
                     />
                 </q-td>
             </template>
         </q-table>
 
-        <!-- Repertorio Details Modal -->
-        <q-dialog v-model="repertorioDialog" persistent>
+        <!-- Modal Ver Repertorio -->
+        <q-dialog v-model="dialogoVerRepertorio" persistent>
             <q-card>
                 <q-card-section>
                     <div class="modal-header">
@@ -41,34 +52,78 @@
                             icon="close"
                             flat
                             dense
-                            @click="repertorioDialog = false"
+                            @click="dialogoVerRepertorio = false"
                         />
                     </div>
                 </q-card-section>
                 <q-card-section>
+                    <p>
+                        <strong>Título:</strong>
+                        {{ repertorioSeleccionado.titulo }}
+                    </p>
+                    <p>
+                        <strong>Fecha de Creación:</strong>
+                        {{ formatDate(repertorioSeleccionado.fechaCreacion) }}
+                    </p>
+                    <p>
+                        <strong>Estado:</strong>
+                        {{ repertorioSeleccionado.estado }}
+                    </p>
+                    <p>
+                        <strong>Descripción:</strong>
+                        {{ repertorioSeleccionado.descripcion }}
+                    </p>
+                    <p>
+                        <strong>Programa:</strong>
+                        {{ repertorioSeleccionado.programas }}
+                    </p>
+                    <h3>Obras:</h3>
+                    <ul>
+                        <li
+                            v-for="obra in repertorioSeleccionado.obras"
+                            :key="obra.id"
+                        >
+                            {{ obra.titulo }} - {{ obra.Compositor }}
+                        </li>
+                    </ul>
+                </q-card-section>
+                <q-card-actions align="right">
+                    <q-btn
+                        label="Cerrar"
+                        color="primary"
+                        @click="dialogoVerRepertorio = false"
+                    />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
+
+        <!-- Modal Editar Repertorio -->
+        <q-dialog v-model="dialogoEditarRepertorio" persistent>
+            <q-card>
+                <q-toolbar>
+                    <q-toolbar-title>
+                        <span class="text-weight-bold">Editar Repertorio</span>
+                    </q-toolbar-title>
+                    <q-btn flat round dense icon="close" v-close-popup />
+                </q-toolbar>
+
+                <q-card-section>
                     <q-input
-                        v-model="selectedRepertorio.titulo"
+                        v-model="repertorioEditar.titulo"
                         label="Título"
                         outlined
                         dense
                     />
                     <q-input
-                        v-model="selectedRepertorio.fechaCreacion"
+                        v-model="repertorioEditar.fechaCreacion"
                         label="Fecha de Creación"
                         type="date"
                         outlined
                         dense
                     />
 
-                    <q-input
-                        v-model="selectedRepertorio.fechaPresentacion"
-                        label="Fecha de Presentación"
-                        type="date"
-                        outlined
-                        dense
-                    />
                     <q-select
-                        v-model="selectedRepertorio.estado"
+                        v-model="repertorioEditar.estado"
                         :options="[
                             'En Proceso',
                             'Terminado',
@@ -80,14 +135,14 @@
                         dense
                     />
                     <q-input
-                        v-model="selectedRepertorio.descripcion"
+                        v-model="repertorioEditar.descripcion"
                         label="Descripción"
                         type="textarea"
                         outlined
                         dense
                     />
                     <q-select
-                        v-model="selectedRepertorio.programas"
+                        v-model="repertorioEditar.programas"
                         label="Programa"
                         :options="programas"
                         outlined
@@ -95,14 +150,11 @@
                         required
                         class="form-input"
                     />
-                    <!-- Obras within the repertorio -->
+                    <!-- Obras dentro del repertorio -->
                     <div class="obras-container">
                         <h3>Obras en el Repertorio</h3>
                         <q-list bordered>
-                            <q-item
-                                v-for="obra in selectedRepertorio.obras"
-                                :key="obra.id"
-                            >
+                            <q-item v-for="obra in Obras" :key="obra.id">
                                 <q-item-section>{{
                                     obra.titulo
                                 }}</q-item-section>
@@ -111,26 +163,94 @@
                                         flat
                                         icon="delete"
                                         color="negative"
-                                        @click="
-                                            removeObraFromRepertorio(obra.id)
-                                        "
+                                        @click="eliminarObraEditar(obra.id)"
                                     />
                                 </q-item-section>
                             </q-item>
                         </q-list>
+                        <q-btn
+                            label="Agregar Obras"
+                            color="primary"
+                            flat
+                            @click="openAgregarObrasModalEditar"
+                        />
                     </div>
+                </q-card-section>
+
+                <q-card-actions align="right">
                     <q-btn
-                        label="Agregar Obras"
+                        label="Cancelar"
+                        color="red-5"
+                        @click="dialogoEditarRepertorio = false"
+                    />
+                    <q-btn
+                        label="Guardar"
                         color="primary"
-                        flat
-                        @click="openAgregarObrasModal"
+                        @click="guardarRepertorioEdicion"
+                    />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
+
+        <!-- Modal Confirmar Eliminar -->
+        <q-dialog v-model="dialogoConfirmarEliminar" persistent>
+            <q-card>
+                <q-card-section>
+                    <div class="text-h6">Confirmar Eliminación</div>
+                    <p>
+                        ¿Estás seguro de que deseas eliminar el repertorio
+                        "<strong>{{ repertorioSeleccionado.titulo }}</strong
+                        >"?
+                    </p>
+                </q-card-section>
+                <q-card-actions align="right">
+                    <q-btn
+                        label="Cancelar"
+                        color="primary"
+                        @click="dialogoConfirmarEliminar = false"
+                    />
+                    <q-btn
+                        label="Eliminar"
+                        color="negative"
+                        @click="eliminarRepertorio"
+                    />
+                </q-card-actions>
+            </q-card>
+        </q-dialog>
+
+        <!-- Nuevo: Dialogo para Seleccionar Repertorio al Agregar Obra -->
+        <q-dialog
+            v-model="dialogoSeleccionarRepertorio"
+            persistent
+            backdrop-filter="Saturate(180%) blur(20px)"
+        >
+            <q-card>
+                <q-card-section>
+                    <h3>Seleccionar Repertorio para la Obra</h3>
+                    <q-select
+                        v-model="seleccionRepertorioId"
+                        :options="
+                            repertorios.map((r) => ({
+                                label: r.titulo,
+                                value: r.id,
+                            }))
+                        "
+                        label="Repertorio"
+                        outlined
+                        dense
+                        required
                     />
                 </q-card-section>
                 <q-card-actions align="right">
                     <q-btn
-                        label="Guardar"
+                        label="Cancelar"
+                        color="red-5"
+                        @click="cerrarDialogoSeleccionarRepertorio"
+                    />
+                    <q-btn
+                        label="Seleccionar"
                         color="primary"
-                        @click="updateRepertorio"
+                        @click="confirmarSeleccionRepertorio"
                     />
                 </q-card-actions>
             </q-card>
@@ -143,7 +263,7 @@
                     <h3>Seleccionar Obras para el Repertorio</h3>
                     <q-list bordered>
                         <q-item
-                            v-for="obra in obrasDisponibles"
+                            v-for="obra in Obras"
                             :key="obra.id"
                             clickable
                             @click="toggleObraSeleccionada(obra)"
@@ -161,7 +281,7 @@
                     <q-btn
                         label="Agregar Seleccionadas"
                         color="primary"
-                        @click="addObrasToRepertorio"
+                        @click="addObrasToRepertorioEditar"
                     />
                 </q-card-actions>
             </q-card>
@@ -170,23 +290,35 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRepertorioStore } from "../store/repertorioStore";
 import { useObraStore } from "../../Obras/store/obraStore";
 import { useQuasar } from "quasar";
+import { Timestamp } from "firebase/firestore"; // Importar Timestamp
 
 const $q = useQuasar();
 const repertorioStore = useRepertorioStore();
 const obraStore = useObraStore();
 
-const loading = ref(true);
+const loading = computed(() => repertorioStore.loading);
 const repertorios = ref([]);
 const selectedRepertorio = ref(null);
 const repertorioDialog = ref(false);
 const agregarObrasDialog = ref(false);
-const obrasDisponibles = ref([]);
+const Obras = computed(() => obraStore.obras);
 const obraSeleccionada = ref({});
+const repertorioSeleccionado = ref(null); // Para ver y eliminar
+const dialogoVerRepertorio = ref(false);
+const dialogoEditarRepertorio = ref(false);
+const dialogoConfirmarEliminar = ref(false);
+const repertorioEditar = ref(null);
+const obraSeleccionadaTemp = ref({}); // Añadido para manejar selecciones
 const fechaCreacion = ref(new Date().toISOString()); // Añadir fecha de creación
+
+// Nuevo estado para seleccionar repertorio al agregar obra
+const dialogoSeleccionarRepertorio = ref(false);
+const seleccionRepertorioId = ref(null);
+
 const columns = [
     { name: "index", label: "#", align: "left", field: (row) => row.index },
     { name: "titulo", label: "Título", align: "left", field: "titulo" },
@@ -204,10 +336,10 @@ const columns = [
         field: "fechaCreacion",
     },
     {
-        name: "fechaPresentacion",
-        label: "Presentación",
+        name: "fechaModificacion",
+        label: "Mofidicacion",
         align: "center",
-        field: "fechaPresentacion",
+        field: "Modificacion",
     },
     {
         name: "porcentaje",
@@ -222,16 +354,52 @@ const programas = [
     "Orquesta",
     // ...añadir más programas según sea necesario
 ];
+
+// Función para formatear Timestamp a 'yyyy-MM-dd'
+const formatDate = (timestamp) => {
+    if (timestamp && timestamp.toDate) {
+        const date = timestamp.toDate();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    return "";
+};
+
+// Función para convertir 'yyyy-MM-dd' a Timestamp
+const parseDate = (dateString) => {
+    const date = new Date(dateString);
+    return Timestamp.fromDate(date);
+};
+
 const loadRepertorios = async () => {
-    loading.value = true;
     await repertorioStore.fetchRepertorios();
-    repertorios.value = repertorioStore.repertorio.map((repertorio, index) => ({
-        ...repertorio,
-        index: index + 1,
-        cantidadObras: repertorio.obras ? repertorio.obras.length : 0,
-        porcentaje: calcularPorcentajeRepertorio(repertorio),
-    }));
-    loading.value = false;
+    if (repertorioStore.repertorios) {
+        repertorios.value = repertorioStore.repertorios.map(
+            (repertorio, index) => {
+                // Filtrar obras que pertenecen al repertorio actual
+                const obrasRelacionadas = obraStore.obras.filter(
+                    (obra) =>
+                        Array.isArray(obra.Repertorio) &&
+                        obra.Repertorio.includes(repertorio.titulo)
+                );
+                Obras.value = Obras.value.filter(
+                    (obra) => !obrasRelacionadas.some((o) => o.id === obra.id)
+                );
+                return {
+                    ...repertorio,
+                    index: index + 1,
+                    cantidadObras: obrasRelacionadas.length,
+                    porcentaje: calcularPorcentajeRepertorio(repertorio),
+                    fechaCreacion: formatDate(repertorio.fechaCreacion),
+                    obras: obrasRelacionadas,
+                };
+            }
+        );
+    } else {
+        repertorios.value = [];
+    }
 };
 
 const calcularPorcentajeRepertorio = (repertorio) => {
@@ -250,9 +418,19 @@ const viewRepertorioDetails = (repertorio) => {
 
 const updateRepertorio = async () => {
     try {
+        // Convertir fechas de vuelta a Timestamp
+        const updatedRepertorio = {
+            ...selectedRepertorio.value,
+            fechaCreacion: selectedRepertorio.value.fechaCreacion
+                ? parseDate(selectedRepertorio.value.fechaCreacion)
+                : null,
+            fechaModificacion: selectedRepertorio.value.fechaModificacion
+                ? parseDate(selectedRepertorio.value.fechaModificacion)
+                : null,
+        };
         await repertorioStore.updateRepertorio(
             selectedRepertorio.value.id,
-            selectedRepertorio.value
+            updatedRepertorio
         );
         loadRepertorios();
         repertorioDialog.value = false;
@@ -274,7 +452,7 @@ const openAgregarObrasModal = async () => {
         const obrasActuales = Array.isArray(selectedRepertorio.value.obras)
             ? selectedRepertorio.value.obras
             : [];
-        obrasDisponibles.value = obraStore.obras.filter(
+        Obras.value = obraStore.obras.filter(
             (obra) => !obrasActuales.some((o) => o.id === obra.id)
         );
         agregarObrasDialog.value = true;
@@ -292,7 +470,7 @@ const toggleObraSeleccionada = (obra) => {
 };
 
 const addObrasToRepertorio = () => {
-    const selectedObras = obrasDisponibles.value.filter(
+    const selectedObras = Obras.value.filter(
         (obra) => obraSeleccionada.value[obra.id]
     );
 
@@ -310,6 +488,127 @@ const removeObraFromRepertorio = (obraId) => {
     selectedRepertorio.value.obras = selectedRepertorio.value.obras.filter(
         (obra) => obra.id !== obraId
     );
+};
+
+const verRepertorio = (repertorio) => {
+    repertorioSeleccionado.value = repertorio;
+    dialogoVerRepertorio.value = true;
+};
+
+const editarRepertorio = (repertorio) => {
+    repertorioEditar.value = { ...repertorio };
+    dialogoEditarRepertorio.value = true;
+};
+
+const confirmarEliminar = (repertorio) => {
+    repertorioSeleccionado.value = repertorio;
+    dialogoConfirmarEliminar.value = true;
+};
+
+const eliminarRepertorio = async () => {
+    try {
+        await repertorioStore.deleteRepertorio(repertorioSeleccionado.value.id);
+        $q.notify({
+            message: "Repertorio eliminado exitosamente.",
+            color: "positive",
+        });
+        dialogoConfirmarEliminar.value = false;
+        loadRepertorios();
+    } catch (error) {
+        $q.notify({
+            message: "Error al eliminar el repertorio.",
+            color: "negative",
+        });
+    }
+};
+
+const eliminarObraEditar = (obraId) => {
+    repertorioEditar.value.obras = repertorioEditar.value.obras.filter(
+        (obra) => obra.id !== obraId
+    );
+};
+
+const guardarRepertorioEdicion = async () => {
+    try {
+        await repertorioStore.updateRepertorio(
+            repertorioEditar.value.id,
+            repertorioEditar.value
+        );
+        $q.notify({
+            message: "Repertorio editado exitosamente.",
+            color: "positive",
+        });
+        dialogoEditarRepertorio.value = false;
+        loadRepertorios();
+    } catch (error) {
+        $q.notify({
+            message: "Error al editar el repertorio.",
+            color: "negative",
+        });
+    }
+};
+
+// Funciones para agregar obras en edición
+const openAgregarObrasModalEditar = () => {
+    agregarObrasDialog.value = true;
+};
+
+const addObrasToRepertorioEditar = () => {
+    const selectedObras = Obras.value.filter(
+        (obra) => obraSeleccionada.value[obra.id]
+    );
+
+    if (!Array.isArray(repertorioEditar.value.obras)) {
+        repertorioEditar.value.obras = [];
+    }
+
+    repertorioEditar.value.obras.push(...selectedObras);
+    agregarObrasDialog.value = false;
+    obraSeleccionada.value = {};
+};
+
+// Nuevo: Confirmar y abrir diálogo para seleccionar repertorio al agregar obra
+const abrirDialogoObra = (index = -1) => {
+    if (index >= 0) {
+        obraActual.value = { ...repertorios.value[index] };
+        dialogoSeleccionarRepertorio.value = false;
+        agregarObrasDialog.value = true;
+    } else {
+        dialogoSeleccionarRepertorio.value = true;
+    }
+};
+
+const confirmarSeleccionRepertorio = () => {
+    if (seleccionRepertorioId.value) {
+        const tituloRepertorio = getRepertorioTituloById(
+            seleccionRepertorioId.value
+        );
+        obraActual.value = {
+            Titulo: "",
+            Compositor: "",
+            Grupo: "",
+            Compases: 1,
+            Repertorio: [tituloRepertorio],
+            isVisible: true,
+        };
+        dialogoSeleccionarRepertorio.value = false;
+        agregarObrasDialog.value = true;
+    } else {
+        $q.notify({
+            message: "Por favor, selecciona un repertorio.",
+            color: "negative",
+            position: "top-right",
+        });
+    }
+};
+
+const getRepertorioTituloById = (id) => {
+    const repertorio = repertorios.value.find((r) => r.id === id);
+    return repertorio ? repertorio.titulo : "";
+};
+
+const cerrarDialogoSeleccionarRepertorio = () => {
+    dialogoSeleccionarRepertorio.value = false;
 };
 
 onMounted(loadRepertorios);

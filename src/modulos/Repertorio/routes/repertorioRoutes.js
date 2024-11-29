@@ -21,6 +21,12 @@ export default [
                 component: () => import("../components/AgregarRepertorio.vue"),
                 meta: { roles: ["Director"] },
             },
+            {
+                path: ":id/obras", // Ruta para manejar las obras de un repertorio específico
+                name: "GestionarObras",
+                component: () => import("../components/GestionarObras.vue"),
+                meta: { roles: ["Director", "Maestro"] },
+            },
             // Agrega más rutas hijas según sea necesario
         ],
     },

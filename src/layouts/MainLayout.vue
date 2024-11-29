@@ -2,60 +2,38 @@
 <template>
   <q-layout view="hHh lpR fFf">
     <!-- Encabezado Principal -->
-    <q-header elevated v-if="headerVisible">
-      <q-toolbar>
+    <q-header elevated v-if="headerVisible" class="bg-primary text-white">
+      <q-toolbar class="q-pl-none q-pr-none">
+        <!-- Botón de Hamburguesa (Visible en móviles) -->
+        <q-btn
+          flat
+          dense
+          icon="menu"
+          class="q-mr-sm hamburger-button"
+          @click="toggleDrawer"
+          aria-label="Abrir menú"
+        />
+
         <!-- Título de la Aplicación -->
         <q-toolbar-title class="cursor-pointer" @click="goToHome">
-          <span>El Sistema Punta Cana</span>
-          <q-icon name="menu" class="hamburger-button" @click="toggleDrawer" />
+          <div class="text-h6">
+            <strong>El Sistema Punta Cana</strong>
+          </div>
         </q-toolbar-title>
 
         <!-- Navegación Principal (Visible en pantallas grandes) -->
-        <nav class="navigation" v-if="!isMobile">
-          <!-- Botón Inicio -->
+        <div class="hidden-sm-and-down">
           <q-btn
+            v-for="item in filteredMenuItems"
+            :key="item.label"
             flat
-            label="Inicio"
-            to="/"
+            :label="item.label"
+            :to="item.to"
             class="navigation-button"
-            :active="isActiveRoute('/')"
-            aria-label="Ir al Inicio"
+            :active="isActiveRoute(item.to)"
+            :aria-label="`Ir a ${item.label}`"
           />
-
-          <!-- Botón Repertorio (Visible para Director y Maestro) -->
-          <q-btn
-            v-if="hasRole(['Director', 'Maestro'])"
-            flat
-            label="Repertorio"
-            to="/repertorio"
-            class="navigation-button"
-            :active="isActiveRoute('/repertorio')"
-            aria-label="Ir a Repertorio"
-          />
-
-          <!-- Botón Obras (Visible para Administrador, Director y Maestro) -->
-          <q-btn
-            v-if="hasRole(['Administrador', 'Director', 'Maestro'])"
-            flat
-            label="Obras"
-            to="/obras"
-            class="navigation-button"
-            :active="isActiveRoute('/obras')"
-            aria-label="Ir a Obras"
-          />
-
-          <!-- Botón Mapa de Calor (Visible para Maestro, Director y Administrador) -->
-          <q-btn
-            v-if="hasRole(['Maestro', 'Director', 'Administrador'])"
-            flat
-            label="Mapa de Calor"
-            to="/mapa-compas"
-            class="navigation-button"
-            :active="isActiveRoute('/mapa-compas')"
-            aria-label="Ir al Mapa de Calor"
-          />
-
-          <!-- Botón de Salir -->
+          <!-- Botón de Salir Siempre Visible -->
           <q-btn
             flat
             icon="logout"
@@ -65,7 +43,7 @@
             color="negative"
             aria-label="Cerrar Sesión"
           />
-        </nav>
+        </div>
       </q-toolbar>
     </q-header>
 
@@ -76,75 +54,40 @@
       side="left"
       overlay
       :width="250"
-      class="bg-white text-black"
+      class="bg-grey-1 text-black"
+      behavior="mobile"
       @show="hideHeader"
       @hide="showHeader"
     >
       <q-scroll-area class="fit">
-        <q-list>
-          <!-- Botón Inicio -->
+        <q-list dense>
           <q-item
+            v-for="item in filteredMenuItems"
+            :key="item.label"
             clickable
-            to="/"
+            :to="item.to"
             @click="closeDrawer"
             active-class="bg-primary text-white"
           >
             <q-item-section avatar>
-              <q-icon name="home" />
+              <q-icon :name="item.icon" size="md" />
             </q-item-section>
-            <q-item-section>Inicio</q-item-section>
+            <q-item-section>{{ item.label }}</q-item-section>
           </q-item>
 
-          <!-- Botón Repertorio (Visible para Director y Maestro) -->
-          <q-item
-            v-if="hasRole(['Director', 'Maestro'])"
-            clickable
-            to="/repertorio"
-            @click="closeDrawer"
-            active-class="bg-primary text-white"
-          >
-            <q-item-section avatar>
-              <q-icon name="library_music" />
-            </q-item-section>
-            <q-item-section>Repertorio</q-item-section>
-          </q-item>
-
-          <!-- Botón Obras (Visible para Administrador, Director y Maestro) -->
-          <q-item
+          <!-- Separador para opciones principales y de cierre -->
+          <q-separator
             v-if="hasRole(['Administrador', 'Director', 'Maestro'])"
-            clickable
-            to="/obras"
-            @click="closeDrawer"
-            active-class="bg-primary text-white"
-          >
-            <q-item-section avatar>
-              <q-icon name="theaters" />
-            </q-item-section>
-            <q-item-section>Obras</q-item-section>
-          </q-item>
+          />
 
-          <!-- Botón Mapa de Calor (Visible para Maestro, Director y Administrador) -->
-          <q-item
-            v-if="hasRole(['Maestro', 'Director', 'Administrador'])"
-            clickable
-            to="/mapa-compas"
-            @click="closeDrawer"
-            active-class="bg-primary text-white"
-          >
-            <q-item-section avatar>
-              <q-icon name="heat_pump" />
-            </q-item-section>
-            <q-item-section>Mapa de Calor</q-item-section>
-          </q-item>
-
-          <!-- Botón de Salir -->
+          <!-- Botón de Salir Siempre Visible en Drawer -->
           <q-item
             clickable
-            @click="handleLogout"
+            @click="handleLogout && closeDrawer()"
             active-class="bg-primary text-white"
           >
             <q-item-section avatar>
-              <q-icon name="logout" />
+              <q-icon name="logout" size="md" />
             </q-item-section>
             <q-item-section>Salir</q-item-section>
           </q-item>
@@ -153,7 +96,7 @@
     </q-drawer>
 
     <!-- Contenedor de Páginas -->
-    <q-page-container>
+    <q-page-container class="bg-grey-2">
       <router-view />
     </q-page-container>
   </q-layout>
@@ -177,19 +120,42 @@ const drawerOpen = ref(false);
 // Estado de la barra superior
 const headerVisible = ref(true);
 
-// Computed para verificar si el dispositivo es móvil
-const isMobile = computed(() => {
-  return $q.screen.width < 768;
-});
+// Definir las opciones del menú de manera centralizada
+// Definir las opciones del menú de manera centralizada
+const menuItems = ref([
+  {
+    label: "Inicio",
+    to: "/",
+    icon: "home",
+    roles: ["Administrador", "Director", "Maestro", "Usuario"], // Ajusta según tus roles
+  },
+  {
+    label: "Repertorio",
+    to: "/repertorio",
+    icon: "library_music",
+    roles: ["Director", "Maestro"],
+  },
+  {
+    label: "Obras",
+    to: "/obras",
+    icon: "theaters",
+    roles: ["Administrador", "Director", "Maestro"],
+  },
+  {
+    label: "Mapa de Calor",
+    to: "/mapa-compas",
+    icon: "heat_pump",
+    roles: ["Maestro", "Director", "Administrador"],
+  },
+]);
 
+// Computed property to filter menu items based on user roles
+const filteredMenuItems = computed(() => {
+  return menuItems.value.filter((item) => hasRole(item.roles));
+});
 // Función para navegar a la página de inicio
 const goToHome = () => {
   router.push({ name: "Home" });
-};
-
-// Función para navegar hacia atrás
-const goToBack = () => {
-  router.back();
 };
 
 // Función para manejar el cierre de sesión
@@ -228,7 +194,6 @@ const isActiveRoute = (path) => {
 
 // Función para alternar el Drawer
 const toggleDrawer = () => {
-  // Cambia el estado del Drawer
   drawerOpen.value = !drawerOpen.value;
 };
 
@@ -258,13 +223,6 @@ const closeDrawer = () => {
 
 <style scoped>
 /* Estilos específicos para MainLayout */
-.navigation {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end; /* Alinea los elementos a la derecha */
-  flex-wrap: nowrap; /* Evita que los elementos se envuelvan en una nueva línea */
-  width: 100%; /* Asegura que la navegación ocupe toda la línea */
-}
 
 /* Cursor pointer para elementos interactivos */
 .cursor-pointer {
@@ -273,49 +231,148 @@ const closeDrawer = () => {
 
 /* Estilos para los botones de navegación */
 .navigation-button {
-  margin-left: 10px;
-  text-transform: none; /* Mantiene el texto en su forma original */
-  color: inherit;
+  margin-left: 15px;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  transition: color 0.3s, border-bottom 0.3s;
 }
 
-/* Estilo para el botón activo */
+.navigation-button:hover,
 .navigation-button.active {
-  font-weight: bold;
-  border-bottom: 2px solid #1976d2; /* Color primario de Quasar */
+  color: #ffffff;
+  border-bottom: 2px solid #ffffff;
 }
 
 /* Estilo para el botón de salir */
 .logout-button {
+  margin-left: 15px;
   display: flex;
   align-items: center;
-  text-transform: none;
-  color: inherit;
+  text-transform: uppercase;
+  font-weight: 500;
 }
 
 /* Estilo para el botón de hamburguesa */
 .hamburger-button {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  z-index: 1000; /* Asegura que el botón esté por encima de otros elementos */
+  display: none;
 }
 
-/* Media Queries para Responsividad */
+/* Responsividad para mostrar/ocultar elementos según el tamaño de pantalla */
 @media (max-width: 768px) {
-  /* Ocultar la navegación principal en pantallas pequeñas */
-  .navigation {
-    display: none;
-  }
-
-  /* Mostrar el botón de hamburguesa */
+  /* Mostrar el botón de hamburguesa en pantallas pequeñas */
   .hamburger-button {
     display: block;
+    color: white;
+  }
+
+  /* Ocultar la navegación principal en pantallas pequeñas */
+  .hidden-sm-and-down {
+    display: none;
   }
 }
 
 @media (min-width: 769px) {
+  /* Ocultar el botón de hamburguesa en pantallas grandes */
   .hamburger-button {
     display: none;
+  }
+}
+
+/* Estilos para el Drawer */
+.q-drawer {
+  transition: transform 0.3s ease;
+}
+
+.q-drawer .q-list {
+  padding: 10px;
+}
+
+.q-drawer .q-item-section.avatar {
+  min-width: 40px;
+  justify-content: center;
+}
+
+.q-drawer .q-item-section:not(.avatar) {
+  flex-grow: 1;
+  padding-left: 10px;
+}
+
+/* Estilos para el contenedor de páginas */
+.q-page-container {
+  padding: 20px;
+  min-height: calc(100vh - 64px); /* Ajustar según la altura del header */
+}
+
+/* Animaciones para el Drawer */
+.q-drawer--active {
+  animation: slideIn 0.3s forwards;
+}
+
+.q-drawer--inactive {
+  animation: slideOut 0.3s forwards;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+/* Estilos para botones en el Drawer */
+.q-drawer .q-item {
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.q-drawer .q-item:hover {
+  background-color: #e0e0e0;
+}
+
+/* Estilos para la leyenda de estados */
+.legend-container {
+  margin-top: 20px;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.legend-description {
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
+/* Responsividad para el contenedor de páginas */
+@media (max-width: 600px) {
+  .q-page-container {
+    padding: 10px;
   }
 }
 </style>
