@@ -1,51 +1,89 @@
 <!-- src/components/OrquestaGrafica.vue -->
 <template>
-  <div class="orquesta-grafica">
-    <q-card flat bordered class="orquesta-card">
+  <q-page padding>
+    <q-card flat bordered class="q-pa-md q-mx-auto" style="max-width: 800px">
+      <!-- Encabezado de la tarjeta -->
       <q-card-section>
-        <h3 class="orquesta-title">Selecciona Instrumentos</h3>
-      </q-card-section>
-
-      <q-separator />
-
-      <q-card-section>
-        <div v-for="section in sections" :key="section.name" class="section">
-          <h4 class="section-name">{{ section.name }}</h4>
-          <q-checkbox
-            v-for="instrument in section.instruments"
-            :key="instrument"
-            v-model="selectedInstruments"
-            :label="instrument"
-            :val="instrument"
-            class="instrument-checkbox"
+        <div class="row items-center justify-between">
+          <div class="text-h5">Selecciona Instrumentos</div>
+          <!-- Botón de cerrar (opcional) -->
+          <q-btn
+            icon="close"
+            flat
+            round
+            dense
+            @click="closeComponent"
+            v-if="closable"
           />
         </div>
       </q-card-section>
 
-      <q-card-actions align="right">
-        <q-btn
-          label="Abrir Mapa de Calor"
-          color="primary"
-          :disabled="selectedInstruments.length === 0"
-          @click="openMapaCalor"
-          :unelevated="true"
-        />
-      </q-card-actions>
+      <q-separator />
+
+      <!-- Disposición de la orquesta -->
+      <q-card-section>
+        <div class="orchestra-layout">
+          <div
+            v-for="(row, rowIndex) in orchestraLayout"
+            :key="rowIndex"
+            class="orchestra-row"
+          >
+            <div
+              v-for="instrument in row"
+              :key="instrument.instrumento"
+              class="orchestra-seat"
+            >
+              <q-btn
+                :label="instrument.instrumento"
+                :color="
+                  isSelected(instrument.instrumento)
+                    ? 'green'
+                    : getInstrumentColor(instrument.instrumento)
+                "
+                :flat="!isSelected(instrument.instrumento)"
+                :unelevated="isSelected(instrument.instrumento)"
+                @click="toggleInstrument(instrument.instrumento)"
+                size="sm"
+                class="orchestra-btn"
+              />
+            </div>
+          </div>
+        </div>
+      </q-card-section>
     </q-card>
+
+    <!-- Botón flotante para abrir el mapa de calor -->
+    <q-fab
+      v-if="selectedInstruments.length > 0"
+      position="bottom-right"
+      icon="map"
+      @click="openMapaCalor"
+      color="primary"
+      transition-show="scale"
+      transition-hide="scale"
+    ></q-fab>
 
     <!-- Modal MapaCalor -->
     <MapaCalor
       v-if="showMapaCalor"
       :selectedInstruments="selectedInstruments"
-      :obraId="obraId"
+      :obraId="props.obraId"
       @close="showMapaCalor = false"
     />
-  </div>
+  </q-page>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import MapaCalor from "../../MapaCalor/MapaCalor.vue"; // Ajustar la ruta según tu estructura
+import { ref, onMounted, defineProps } from "vue";
+import MapaCalor from "../../MapaCalor/MapaCalor.vue"; // Ajusta la ruta según tu estructura
+import { useObraStore } from "../store/obraStore"; // Ajusta la ruta según tu estructura
+import {
+  obtenerInstrumentosDetalladosDeObras,
+  obtenerColorInstrumento,
+  agruparInstrumentosPorFamilia,
+} from "../Instrumentos/diccionarioInstrumentos"; // Ajusta la ruta según tu estructura
+
+const obraStore = useObraStore();
 
 // Props
 const props = defineProps({
@@ -53,67 +91,124 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  closable: {
+    type: Boolean,
+    default: false,
+  },
 });
 
-// Data
-const sections = ref([
-  {
-    name: "Cuerdas",
-    instruments: ["Violin 1", "Violin 2", "Viola", "Violoncello", "Contrabajo"],
-  },
-  {
-    name: "Vientos",
-    instruments: ["Flauta", "Oboe", "Clarinete", "Fagot"],
-  },
-  {
-    name: "Percusión",
-    instruments: ["Tímpani", "Bombo", "Cajón", "Platillos"],
-  },
-  {
-    name: "Metales",
-    instruments: ["Trompeta", "Trombón", "Tuba"],
-  },
-]);
-
+// Data properties
+const obrasSeleccionadas = ref([]);
+const instrumentosDetallados = ref([]);
 const selectedInstruments = ref([]);
 const showMapaCalor = ref(false);
 
-// Methods
+// Disposición de la orquesta
+const orchestraLayout = ref([]);
+
+// Métodos
 const openMapaCalor = () => {
   showMapaCalor.value = true;
 };
+
+const closeComponent = () => {
+  // Emitir un evento de cierre si es necesario
+  // emit('close');
+};
+
+// Función para cargar instrumentos
+const cargarInstrumentos = async () => {
+  try {
+    // Obtener la obra seleccionada
+    const obra = await obraStore.getObraById(props.obraId);
+    if (!obra) {
+      console.warn(`Obra con ID ${props.obraId} no encontrada.`);
+      return;
+    }
+    obrasSeleccionadas.value = [obra];
+
+    // Obtener instrumentos detallados de las obras seleccionadas
+    instrumentosDetallados.value = obtenerInstrumentosDetalladosDeObras(
+      obrasSeleccionadas.value
+    );
+
+    // Construir la disposición de la orquesta
+    construirDisposicionOrquesta();
+  } catch (error) {
+    console.error("Error al cargar los instrumentos:", error);
+  }
+};
+
+// Construir la disposición de la orquesta dinámicamente
+const construirDisposicionOrquesta = () => {
+  // Agrupamos los instrumentos por familia
+  const instrumentosAgrupados = agruparInstrumentosPorFamilia(
+    instrumentosDetallados.value.map((item) => item.instrumento)
+  );
+
+  // Organizar los instrumentos en filas según las familias
+  orchestraLayout.value = instrumentosAgrupados.map((grupo) => {
+    return grupo.instruments.map((instrumento) => {
+      const detallesInstrumento = instrumentosDetallados.value.find(
+        (item) => item.instrumento === instrumento
+      );
+      return detallesInstrumento;
+    });
+  });
+};
+
+// Obtener el color del instrumento
+const getInstrumentColor = (instrumentName) => {
+  const color = obtenerColorInstrumento(instrumentName);
+  return color || "#74c789"; // Asegura un color por defecto si es necesario
+};
+
+// Verificar si un instrumento está seleccionado
+const isSelected = (instrumentName) => {
+  return selectedInstruments.value.includes(instrumentName);
+};
+
+// Alternar la selección de un instrumento sin modificar el array original
+const toggleInstrument = (instrumentName) => {
+  if (isSelected(instrumentName)) {
+    selectedInstruments.value = selectedInstruments.value.filter(
+      (name) => name !== instrumentName
+    );
+  } else {
+    selectedInstruments.value.push(instrumentName);
+  }
+};
+
+// Cargar los instrumentos al montar el componente
+onMounted(() => {
+  cargarInstrumentos();
+});
 </script>
 
 <style scoped>
-.orquesta-grafica {
-  padding: 1rem;
+.orchestra-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.orquesta-card {
-  max-width: 600px;
-  margin: 0 auto;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+.orchestra-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
 }
 
-.orquesta-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #2c3e50;
+.orchestra-seat {
+  margin: 4px;
 }
 
-.section {
-  margin-bottom: 1rem;
-}
-
-.section-name {
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #34495e;
-  margin-bottom: 0.5rem;
-}
-
-.instrument-checkbox {
-  margin-bottom: 0.5rem;
+.orchestra-btn {
+  min-width: 80px;
+  text-align: center;
+  /* Color del botón activado */
+  color: #47524a;
+  /* Opcional: Añade transiciones suaves para el cambio de estado */
+  transition: background-color 0.3s, color 0.3s;
 }
 </style>

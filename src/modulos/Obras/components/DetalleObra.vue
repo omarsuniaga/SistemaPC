@@ -1,56 +1,79 @@
 <!-- src/components/DetalleObra.vue -->
 <template>
-  <q-page class="flex flex-center" style="background-color: #f7f9fc">
-    <div class="detalle-obra-container">
-      <q-card flat bordered class="detalle-obra-card">
-        <div class="detalle-obra-delete">
-          <q-btn icon="delete" color="negative" @click="eliminarObra" />
-        </div>
-        <q-card-section>
-          <div class="header-section">
-            <div class="obra-title">
-              <h4>{{ obra.titulo }}</h4>
-              <div>
-                <q-btn icon="edit" @click="editarObra" fab size="24px" />
+  <q-page>
+    <q-card flat class="q-pa-md">
+      <!-- Encabezado con imagen de fondo y superposición -->
+      <div class="header-container">
+        <div class="overlay">
+          <!-- Botón de eliminar en la esquina superior -->
+          <q-btn
+            icon="delete"
+            color="negative"
+            flat
+            class="delete-btn"
+            @click="eliminarObra"
+          />
+
+          <q-card-section class="text-white">
+            <div>
+              <!-- Título de la obra con botón de editar al lado -->
+              <div class="row items-center">
+                <div class="text-h4 q-mr-sm">{{ obra.titulo }}</div>
+                <q-btn
+                  icon="edit"
+                  color="white"
+                  flat
+                  dense
+                  @click="editarObra"
+                  class="edit-btn"
+                />
+              </div>
+              <!-- Compositor de la obra -->
+              <div class="text-subtitle2">{{ obra.compositor }}</div>
+              <!-- Número de compases debajo del compositor -->
+              <div class="text-body1 q-mt-xs">
+                Compases: {{ obra.compases }}
               </div>
             </div>
-          </div>
-          <div class="obra-details">
-            <div class="detail-item">
-              <span class="detail-label">Autor:</span>
-              <span class="detail-value">{{ obra.autor }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Programas:</span>
-              <span class="detail-value">{{ programas }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Compositor:</span>
-              <span class="detail-value">{{ obra.compositor }}</span>
-            </div>
-            <div class="detail-item">
-              <span class="detail-label">Compases:</span>
-              <span class="detail-value">{{ obra.compases }}</span>
-            </div>
-          </div>
-        </q-card-section>
+          </q-card-section>
+        </div>
+      </div>
 
+      <!-- Contenido de la obra -->
+      <q-card-section>
         <q-separator />
 
-        <q-card-section>
-          <!-- Componente OrquestaGrafica renderizado solo si obra.id está definido -->
+        <div class="q-mt-md">
+          <div class="text-subtitle1">Programas</div>
+          <!-- Aquí eliminamos q-chip-group -->
+          <div class="q-mt-sm">
+            <q-chip
+              v-for="programa in programas"
+              :key="programa.label"
+              color="primary"
+              text-color="white"
+              class="q-mr-sm q-mb-sm"
+              dense
+            >
+              {{ programa.label }}
+            </q-chip>
+          </div>
+        </div>
+
+        <!-- Componente OrquestaGrafica renderizado solo si obra.id está definido -->
+        <div class="q-mt-md">
           <OrquestaGrafica v-if="obra.id" :obraId="obra.id" />
-        </q-card-section>
-      </q-card>
-    </div>
+        </div>
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { useCompasStore } from "../../MapaCalor/store/compasStore"; // Asegúrate de que la ruta es correcta
-import OrquestaGrafica from "../Instrumentos/OrquestaGrafica.vue"; // Ajustar la ruta según tu estructura
+import { useCompasStore } from "../../MapaCalor/store/compasStore";
+import OrquestaGrafica from "../Instrumentos/OrquestaGrafica.vue";
 import { Notify } from "quasar";
 
 const route = useRoute();
@@ -59,17 +82,14 @@ const compasStore = useCompasStore();
 
 const obra = ref({});
 const cargando = ref(true);
-// iterar obra.programas para obtener un string con los nombres de los programas
-const programas = computed(() =>
-  !obra.value.programas
-    ? ""
-    : obra.value.programas.map((programa) => programa.label).join(", ")
-);
+
+// Asegurarse de que 'programas' es un arreglo
+const programas = computed(() => obra.value.programas || []);
 
 // Cargar los datos de la obra al montar el componente
 onMounted(async () => {
   try {
-    const obraId = route.params.id; // Asumiendo que el ID de la obra viene en la ruta
+    const obraId = route.params.id;
     const obraData = await compasStore.obtenerObra(obraId);
     if (!obraData) {
       throw new Error("Obra no encontrada");
@@ -95,7 +115,7 @@ const editarObra = () => {
 };
 
 const eliminarObra = () => {
-  // Implementar un dialogo de confirmacion si lo deseas
+  // Implementar un diálogo de confirmación
   Notify.create({
     message: "Funcionalidad de eliminar obra no implementada.",
     color: "warning",
@@ -105,73 +125,59 @@ const eliminarObra = () => {
 </script>
 
 <style scoped>
-.detalle-obra-container {
-  width: 100%;
-  padding: 0.5rem;
-  background-color: #2c3e50;
+.header-container {
+  position: relative;
+  background-image: url("https://source.unsplash.com/random/800x600?music");
+  background-size: cover;
+  background-position: center;
+  height: 200px;
+  border-radius: 8px;
 }
 
-.detalle-obra-card {
-  width: 100%;
-  border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+.overlay {
+  background: rgba(0, 0, 0, 0.6);
+  height: 100%;
+  border-radius: 8px;
 }
 
-.header-section {
+/* Posicionar el botón de eliminar en la esquina superior derecha */
+.delete-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 1;
+}
+
+/* Estilo opcional para el botón de editar */
+.edit-btn {
+  font-size: 18px;
+}
+
+/* Centrar el contenido dentro del overlay */
+.header-container .q-card-section {
+  height: 100%;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  justify-content: center;
 }
 
-.obra-title {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: #2c3e50;
-  display: flex;
-  justify-content: end;
-  align-items: center;
-  padding-inline-start: 0.5rem;
-}
-
-.actions q-btn {
-  margin-left: 0.5rem;
-}
-
-.detalle-obra-delete {
-  display: flex;
-  justify-content: right;
-  padding: 0.5rem;
-  align-items: end;
-}
-.obra-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.detail-item {
-  flex: 1 1 45%;
-  display: flex;
-  justify-content: space-between;
-}
-
-.detail-label {
-  font-weight: 600;
-  color: #34495e;
-}
-
-.detail-value {
-  color: #7f8c8d;
+/* Ajustes de la tarjeta */
+.q-card {
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 @media (max-width: 600px) {
-  .obra-details {
-    flex-direction: column;
+  .header-container {
+    height: 150px;
   }
 
-  .detail-item {
-    flex: 1 1 100%;
+  .text-h4 {
+    font-size: 1.4rem;
+  }
+
+  .edit-btn {
+    font-size: 16px;
   }
 }
 </style>

@@ -6,14 +6,12 @@
       <q-toolbar>
         <!-- Título de la Aplicación -->
         <q-toolbar-title class="cursor-pointer" @click="goToHome">
-          El Sistema Punta Cana
+          <span>El Sistema Punta Cana</span>
+          <q-icon name="menu" class="hamburger-button" @click="toggleDrawer" />
         </q-toolbar-title>
 
-        <!-- Spacer para alinear los botones a la derecha -->
-        <div class="q-mx-md" />
-
         <!-- Navegación Principal (Visible en pantallas grandes) -->
-        <nav class="navigation q-gutter-sm" v-if="!isMobile">
+        <nav class="navigation" v-if="!isMobile">
           <!-- Botón Inicio -->
           <q-btn
             flat
@@ -63,24 +61,13 @@
             icon="logout"
             label="Salir"
             @click="handleLogout"
-            class="logout-button q-ml-sm"
+            class="logout-button"
             color="negative"
             aria-label="Cerrar Sesión"
           />
         </nav>
       </q-toolbar>
     </q-header>
-
-    <!-- Botón de Hamburguesa (Visible en pantallas pequeñas) -->
-    <q-btn
-      v-if="isMobile"
-      round
-      dense
-      icon="menu"
-      @click="toggleDrawer"
-      class="hamburger-button"
-      aria-label="Abrir menú de navegación"
-    />
 
     <!-- Menú Desplegable (Drawer) -->
     <q-drawer
@@ -241,6 +228,7 @@ const isActiveRoute = (path) => {
 
 // Función para alternar el Drawer
 const toggleDrawer = () => {
+  // Cambia el estado del Drawer
   drawerOpen.value = !drawerOpen.value;
 };
 
@@ -270,6 +258,13 @@ const closeDrawer = () => {
 
 <style scoped>
 /* Estilos específicos para MainLayout */
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end; /* Alinea los elementos a la derecha */
+  flex-wrap: nowrap; /* Evita que los elementos se envuelvan en una nueva línea */
+  width: 100%; /* Asegura que la navegación ocupe toda la línea */
+}
 
 /* Cursor pointer para elementos interactivos */
 .cursor-pointer {
@@ -300,7 +295,7 @@ const closeDrawer = () => {
 /* Estilo para el botón de hamburguesa */
 .hamburger-button {
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   right: 20px;
   z-index: 1000; /* Asegura que el botón esté por encima de otros elementos */
 }

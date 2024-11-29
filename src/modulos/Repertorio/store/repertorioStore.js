@@ -5,6 +5,7 @@ import {
     updateRepertorio,
     getRepertorioById,
     getAllRepertorios,
+    getRepertorio,
 } from "../services/repertorioService"; // Asegúrate de la ruta correcta
 
 export const useRepertorioStore = defineStore("repertorios", {
@@ -15,11 +16,8 @@ export const useRepertorioStore = defineStore("repertorios", {
     }),
     getters: {
         // Getter para obtener solo los títulos de los repertorios
-        titulosRepertorios(state) {
-            return state.repertorios.map((repertorio) => repertorio.titulo);
-        },
-        getRepertorios(state) {
-            return state.repertorios;
+        totalRepertorios(state) {
+            return state.repertorios.length;
         },
     },
     actions: {
@@ -53,6 +51,9 @@ export const useRepertorioStore = defineStore("repertorios", {
         async createRepertorio(data) {
             await createRepertorio(data);
             await this.fetchRepertorios();
+        },
+        async getRepertorios() {
+            return (this.repertorios = await getRepertorio());
         },
     },
 });

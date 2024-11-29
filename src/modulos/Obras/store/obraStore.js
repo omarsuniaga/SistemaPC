@@ -18,6 +18,7 @@ import {
   addCompas,
   deleteCompasByRange,
 } from "../../MapaCalor/service/mapaService"; // Importar métodos de mapaService.js
+import { agruparInstrumentosPorFamilia } from "../Instrumentos/diccionarioInstrumentos"; // Importar función de agrupación de instrumentos
 
 export const useObraStore = defineStore("obraStore", {
   state: () => ({
@@ -75,16 +76,6 @@ export const useObraStore = defineStore("obraStore", {
      * @param {String} id - ID de la obra.
      * @returns {Promise<Object|null>} - Datos de la obra o null si no existe.
      */
-    async getObraById(id) {
-      const obraDoc = doc(db, "OBRAS", id);
-      const obraSnap = await getDoc(obraDoc);
-      if (obraSnap.exists()) {
-        return { id: obraSnap.id, ...obraSnap.data() };
-      } else {
-        throw new Error("No such document!");
-      }
-    },
-
     async createNuevaObra(nuevaObra) {
       this.isLoading = true;
       try {
@@ -147,7 +138,7 @@ export const useObraStore = defineStore("obraStore", {
 
     async getObraById(obraId) {
       // Primero, busca si la obra ya está en el caché
-      const obra = this.obras[obraId]; // Busca directamente por ID, ya que obras es un objeto
+      let obra = this.obras.find((obra) => obra.id === obraId);
 
       // Si la obra no está en el caché, haz la consulta a la base de datos
       if (!obra) {
@@ -157,17 +148,43 @@ export const useObraStore = defineStore("obraStore", {
 
           // Si la obra se encuentra, guardarla en el caché local
           if (obraData) {
-            this.obras[obraId] = obraData; // Guarda la obra en el objeto de caché con el ID como clave
+            this.obras.push(obraData); // Guarda la obra en el array de caché
+            obra = obraData;
           }
-          return obraData;
         } catch (error) {
           console.error(`Error al obtener la obra con ID ${obraId}:`, error);
           throw error;
         }
       }
 
-      // Si la obra está en el caché, devuelve el objeto directamente
+      // Devolver la obra encontrada o consultada
       return obra;
+    },
+
+    // obtener instrumentos de la obra
+    async obtenerInstrumentos(obraId) {
+      console.log("ObraId", obraId);
+
+      this.isLoading = true;
+      try {
+        const obra = await this.getObraById(obraId);
+        if (!obra) {
+          console.warn(`Obra con ID ${obraId} no encontrada.`);
+          return [];
+        }
+        // mostrar los instrumentos agrupados por familia
+        console.log("Obras.Instrumentos", obra.instrumentos);
+
+        return agruparInstrumentosPorFamilia(obra.instrumentos);
+      } catch (error) {
+        console.error(
+          `Error al obtener los instrumentos de la obra ${obraId}:`,
+          error
+        );
+        throw error;
+      } finally {
+        this.isLoading = false;
+      }
     },
   },
 });

@@ -74,6 +74,25 @@
         </div>
       </div>
 
+      <!-- Selección de Repertorio -->
+      <div class="section">
+        <h3 class="section-title">
+          <q-icon name="queue_music" size="20px" /> Repertorio
+        </h3>
+        <div class="q-pa-md">
+          <q-select
+            v-model="selectedRepertorio"
+            label="Repertorio"
+            :options="repertorioOptions"
+            outlined
+            dense
+            multiple
+            required
+            class="form-input"
+          />
+        </div>
+      </div>
+
       <!-- Check para Movimientos -->
       <div class="q-mt-md">
         <q-toggle
@@ -153,7 +172,9 @@
             <q-item-section>
               <div class="row items-center">
                 <q-icon name="music_note" color="primary" size="20px" />
-                <span class="q-ml-sm">{{ instrumento.nombre }}</span>
+                <span class="q-ml-sm">{{
+                  capitalizarPrimeraLetra(instrumento.nombre)
+                }}</span>
               </div>
             </q-item-section>
 
@@ -293,15 +314,14 @@ import { useRouter } from "vue-router";
 import { useQuasar } from "quasar";
 import { useProgramaStore } from "../store/programaStore";
 import { useRepertorioStore } from "src/modulos/Repertorio/store/repertorioStore"; // Nueva importación
-import { db, auth } from "src/services/firebaseConfig"; // Actualizar la ruta de importación
 import { useUserStore } from "src/stores/userStore"; // Importar userStore
 
 const router = useRouter();
 const $q = useQuasar();
 const programaStore = useProgramaStore();
 const repertorioStore = useRepertorioStore(); // Nueva instancia del store
+const ObraStore = useObraStore();
 const userStore = useUserStore(); // Instanciar userStore
-const usuarioEmail = computed(() => userStore.email); // Obtener email desde el store
 
 // State variables
 const titulo = ref("");
@@ -309,9 +329,11 @@ const compositor = ref("");
 const compases = ref(0);
 const tieneMovimientos = ref(false);
 const movimientos = ref([]);
-const instrumentos = ref([]);
-const selectedProgramas = ref([]);
+const instrumentos = ref([]); //agregar la primera mayuscula a instrumentos
 const programaOptions = ref([]);
+const selectedProgramas = ref([]);
+const repertorioOptions = ref([]); // Nueva variable para opciones de repertorio
+const selectedRepertorio = ref([]); // Nueva variable para repertorio seleccionado
 
 // Modal control
 const dialogoMovimiento = ref(false);
@@ -346,19 +368,18 @@ const guardarMovimiento = () => {
       (m) => m.id === movimientoEditando.value.id
     );
     if (index !== -1) {
-      movimientos.value[index].nombre = movimientoNombre.value;
+      movimientos.value[index].nombre = movimientoNombre.value.trim();
       movimientos.value[index].compases = movimientoCompases.value;
       $q.notify({ message: "Movimiento actualizado.", color: "positive" });
     }
   } else {
     movimientos.value.push({
       id: Date.now() + Math.random(),
-      nombre: movimientoNombre.value,
+      nombre: movimientoNombre.value.trim(),
       compases: movimientoCompases.value,
     });
     $q.notify({ message: "Movimiento agregado.", color: "positive" });
   }
-  // cerrarDialogoMovimiento();
 };
 const eliminarMovimiento = (id) => {
   movimientos.value = movimientos.value.filter((m) => m.id !== id);
@@ -382,13 +403,13 @@ const guardarInstrumento = () => {
       (i) => i.id === participanteEditando.value.id
     );
     if (index !== -1) {
-      instrumentos.value[index].nombre = participanteNombre.value;
+      instrumentos.value[index].nombre = participanteNombre.value.trim();
       $q.notify({ message: "Instrumento actualizado.", color: "positive" });
     }
   } else {
     instrumentos.value.push({
       id: Date.now() + Math.random(),
-      nombre: participanteNombre.value,
+      nombre: participanteNombre.value.trim(),
     });
     $q.notify({ message: "Instrumento agregado.", color: "positive" });
   }
@@ -420,8 +441,11 @@ const cargarProgramas = async () => {
 // Definir la función cargarRepertorio
 const cargarRepertorio = async () => {
   try {
-    const repertorio = await repertorioStore.getRepertorio(); // Asumiendo que existe este método
-    // Procesar el repertorio según sea necesario
+    const titulosRepertorio = await repertorioStore.getRepertorios(); // Obtener los títulos de repertorio
+    repertorioOptions.value = titulosRepertorio.map((elem, index) => ({
+      value: index,
+      label: elem.titulo,
+    }));
   } catch (error) {
     console.error("Error al cargar el repertorio:", error);
     $q.notify({ message: "Error al cargar el repertorio.", color: "negative" });
@@ -448,20 +472,20 @@ const submitForm = async () => {
     .filter(Boolean); // Filtrar cualquier valor no válido
 
   const nuevaObra = {
-    titulo: titulo.value,
-    compositor: compositor.value,
+    titulo: titulo.value.trim(),
+    compositor: compositor.value.trim(),
     compases: tieneMovimientos.value
       ? movimientos.value.reduce((sum, m) => sum + m.compases, 0)
       : compases.value,
     programas: programasEstructurados, // Usar la estructura correcta
     movimientos: tieneMovimientos.value ? movimientos.value : [],
-    instrumentos: instrumentos.value.map((i) => i.nombre),
+    instrumentos: instrumentos.value.map((i) => i.nombre.trim()),
     porcentajeCompletado: 0,
     fechaRegistro: new Date().toISOString(),
   };
 
   try {
-    await useObraStore().createObra(nuevaObra);
+    await ObraStore.createNuevaObra(nuevaObra);
     $q.notify({ message: "Obra registrada exitosamente.", color: "positive" });
     router.push({ name: "ListaObras" });
   } catch (error) {

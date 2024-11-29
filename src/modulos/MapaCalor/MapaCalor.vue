@@ -1,11 +1,15 @@
-<!-- src/components/MapaCalor.vue -->
 <template>
   <q-dialog v-model="isOpen" persistent>
     <q-card style="width: 90%">
       <q-card-section>
         <div class="header">
           <h3>Mapa de Calor</h3>
-          <q-btn flat icon="close" @click="closeModal" />
+          <q-btn
+            flat
+            icon="close"
+            @click="closeModal"
+            aria-label="Cerrar Mapa de Calor"
+          />
         </div>
         <div class="instrument-selector">
           <q-select
@@ -15,7 +19,23 @@
             @update:model-value="onInstrumentChange"
             filled
             dense
+            emit-value
+            map-options
           />
+        </div>
+        <div class="legend-container" v-if="activeInstrument">
+          <h4>Leyenda de Estados</h4>
+          <div class="legend-items">
+            <div v-for="state in STATES" :key="state" class="legend-item">
+              <span
+                class="legend-color"
+                :style="{ backgroundColor: STATE_MAP[state].color }"
+              ></span>
+              <span class="legend-description">{{
+                STATE_MAP[state].description
+              }}</span>
+            </div>
+          </div>
         </div>
         <div class="compases-container" v-if="activeInstrument">
           <div class="instrument-title">{{ activeInstrument }}</div>
@@ -23,12 +43,16 @@
             <q-btn
               v-for="compas in compases"
               :key="compas.numero"
-              :label="compas.numero"
-              :color="getColor(compas.estado)"
-              class="compas-button"
+              :class="['compas-button', `estado-${compas.estado}`]"
+              text-color="black"
               @click="toggleEstado(compas)"
               unelevated
-            />
+              :aria-label="`Compás ${compas.numero}, Estado: ${
+                STATE_MAP[compas.estado].description
+              }`"
+            >
+              <span class="compas-number">{{ compas.numero }}</span>
+            </q-btn>
           </div>
         </div>
       </q-card-section>
@@ -48,11 +72,14 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from "vue";
-import { useCompasStore } from "./store/compasStore"; // Ajustar la ruta según tu estructura
-import { useAuthStore } from "src/stores/authStore";
+import { ref, onMounted, computed, watch } from "vue";
+import { useCompasStore } from "../MapaCalor/store/compasStore"; // Ajustar la ruta según tu estructura
+import { useAuthStore } from "../../stores/authStore"; // Ajustar la ruta según tu estructura
 import { Notify } from "quasar";
-import { STATE_MAP } from "./logica/constants.js"; // Importar el STATE_MAP
+import { STATE_MAP, STATES } from "../MapaCalor/logica/constants"; // Importar desde el archivo de constantes
+
+// Verificación de que STATES es un array
+console.log("STATES es un array:", Array.isArray(STATES)); // Debe imprimir: true
 
 const props = defineProps({
   selectedInstruments: {
@@ -65,7 +92,7 @@ const props = defineProps({
   },
 });
 
-const emits = defineEmits(["close"]);
+const emit = defineEmits(["close"]);
 
 const isOpen = ref(true); // Control del diálogo
 const compasStore = useCompasStore();
@@ -91,7 +118,7 @@ const fetchObraData = async () => {
       throw new Error("Obra no encontrada");
     }
     // Asignar totalCompases
-    totalCompases.value = obraData.totalCompases || 100; // Asigna un valor por defecto si no está definido
+    totalCompases.value = obraData.compases || 0; // Asigna un valor por defecto si no está definido
     loading.value = false;
   } catch (error) {
     console.error("Error al obtener datos de la obra:", error);
@@ -125,27 +152,27 @@ const fetchCompases = async () => {
         // Obtener el estado del instrumento específico
         const estado = compasExistente.instrumentosEstados
           ? compasExistente.instrumentosEstados[activeInstrument.value]
-          : "sin_trabajar";
+          : "SIN_TRABAJAR";
         generatedCompases.push({
           numero: i,
-          estado: estado || "sin_trabajar",
+          estado: estado || "SIN_TRABAJAR",
           instrumento: activeInstrument.value,
           responsable:
             compasExistente.instrumentosEstados &&
             compasExistente.instrumentosEstados[
-              activeInstrument.value + "_responsable"
+              `${activeInstrument.value}_responsable`
             ]
               ? compasExistente.instrumentosEstados[
-                  activeInstrument.value + "_responsable"
+                  `${activeInstrument.value}_responsable`
                 ]
               : "",
           updatedAt:
             compasExistente.instrumentosEstados &&
             compasExistente.instrumentosEstados[
-              activeInstrument.value + "_updatedAt"
+              `${activeInstrument.value}_updatedAt`
             ]
               ? compasExistente.instrumentosEstados[
-                  activeInstrument.value + "_updatedAt"
+                  `${activeInstrument.value}_updatedAt`
                 ].toDate()
               : null,
           id: compasExistente.id,
@@ -153,7 +180,7 @@ const fetchCompases = async () => {
       } else {
         generatedCompases.push({
           numero: i,
-          estado: "sin_trabajar",
+          estado: "SIN_TRABAJAR",
           instrumento: activeInstrument.value,
           responsable: "",
           updatedAt: null,
@@ -178,14 +205,27 @@ const fetchCompases = async () => {
 };
 
 const getColor = (estado) => {
-  return STATE_MAP[estado] ? STATE_MAP[estado].color : "grey-3";
+  const color = STATE_MAP[estado] ? STATE_MAP[estado].color : "#FF3B30"; // Color predeterminado
+  console.log(`Estado: ${estado} - Color: ${color}`); // Log para verificar
+  return color;
 };
 
 const toggleEstado = (compas) => {
-  const estados = Object.keys(STATE_MAP);
-  const currentIndex = estados.indexOf(compas.estado);
-  const nextIndex = (currentIndex + 1) % estados.length;
-  compas.estado = estados[nextIndex];
+  const currentIndex = STATES.indexOf(compas.estado);
+  console.log(
+    `Compas ${compas.numero} - Estado actual: ${compas.estado} - Index: ${currentIndex}`
+  );
+
+  if (currentIndex === -1) {
+    console.warn(`Estado desconocido: ${compas.estado}`);
+    compas.estado = "SIN_TRABAJAR"; // Asigna estado por defecto si no se encuentra
+    return;
+  }
+
+  const nextIndex = (currentIndex + 1) % STATES.length;
+  const nuevoEstado = STATES[nextIndex];
+  console.log(`Compas ${compas.numero} - Nuevo Estado: ${nuevoEstado}`);
+  compas.estado = nuevoEstado;
 };
 
 const guardarCambios = async () => {
@@ -256,8 +296,18 @@ const onInstrumentChange = async () => {
 
 // Cerrar modal
 const closeModal = () => {
-  emits("close");
+  emit("close");
 };
+
+// Watchers
+watch(
+  () => props.selectedInstruments,
+  (newInstruments) => {
+    if (!newInstruments.includes(activeInstrument.value)) {
+      activeInstrument.value = newInstruments[0] || "";
+    }
+  }
+);
 
 // On mounted
 onMounted(async () => {
@@ -277,6 +327,34 @@ onMounted(async () => {
   margin-top: 1rem;
 }
 
+.legend-container {
+  margin-top: 2rem;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.legend-description {
+  font-size: 0.9rem;
+  color: #2c3e50;
+}
+
 .compases-container {
   margin-top: 2rem;
 }
@@ -290,29 +368,73 @@ onMounted(async () => {
 
 .compases-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(60px, 1fr)
+  ); /* Tamaño adecuado */
   gap: 10px;
 }
 
 .compas-button {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
+  width: 60px; /* Tamaño adecuado */
+  height: 60px;
+  border-radius: 8px; /* Bordes menos redondeados */
   transition: background-color 0.3s, transform 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold; /* Texto más legible */
+  text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.7); /* Sombra para mejorar legibilidad */
+}
+
+.estado-SIN_TRABAJAR {
+  background-color: #ff3b30;
+}
+
+.estado-EMPEZADO_LIGERAMENTE {
+  background-color: #ff6b6b;
+}
+
+.estado-EN_PROGRESO {
+  background-color: #ff9500;
+}
+
+.estado-REVISADO {
+  background-color: #ffd60a;
+}
+
+.estado-CASI_COMPLETADO {
+  background-color: #c9e265;
+}
+
+.estado-COMPLETADO_PRELIMINAR {
+  background-color: #34c759;
+}
+
+.estado-COMPLETADO {
+  background-color: #007e33;
 }
 
 .compas-button:hover {
   transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.compas-number {
+  color: black; /* Texto negro siempre */
 }
 
 @media (max-width: 600px) {
   .compases-grid {
-    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+    grid-template-columns: repeat(
+      auto-fill,
+      minmax(50px, 1fr)
+    ); /* Ajuste para pantallas pequeñas */
   }
 
   .compas-button {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
   }
 }
 </style>
