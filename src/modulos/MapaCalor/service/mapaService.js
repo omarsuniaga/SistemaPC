@@ -22,30 +22,6 @@ import {
  */
 const COMPASES_COLLECTION = "COMPASES";
 
-// /**
-//  * Obtener compases de una obra específica dentro de un rango de números.
-//  * @param {String} obraId - ID de la obra.
-//  * @param {Number} rangoInicio - Número inicial del rango (inclusive).
-//  * @param {Number} rangoFin - Número final del rango (inclusive).
-//  * @returns {Promise<Array>} - Lista de compases que cumplen con los criterios.
-//  */
-// export const obtenerCompasesPorObra = async (obraId, rangoInicio = 0, rangoFin = 100) => {
-//   try {
-//     const compasesRef = collection(db, COMPASES_COLLECTION);
-//     const q = query(
-//       compasesRef,
-//       where("obraId", "==", obraId),
-//       where("numero", ">=", rangoInicio),
-//       where("numero", "<=", rangoFin)
-//     );
-//     const snapshot = await getDocs(q);
-//     return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-//   } catch (error) {
-//     console.error("Error al obtener compases por obra:", error);
-//     return []; // Retornar un array vacío en caso de error
-//   }
-// };
-
 export const deleteCompasByRange = async (obraId, rangoInicio, rangoFin) => {
   try {
     const compasesRef = collection(db, COMPASES_COLLECTION);
@@ -396,4 +372,48 @@ export const obtenerEmailUsuarioActual = () => {
       }
     });
   });
+};
+
+// Asegúrate de que esta función esté definida y exportada
+export const getCompasesByObraIdService = async (obraId) => {
+  try {
+    const compases = await obtenerCompasesPorObra(obraId);
+    return compases;
+  } catch (error) {
+    console.error("Error al obtener los compases por obra:", error);
+    throw error;
+  }
+};
+
+// Asegúrate de que esta función esté definida y exportada
+
+export const updateObraService = async (obraId, data) => {
+  const obraRef = doc(db, "OBRAS", obraId);
+  await updateDoc(obraRef, data);
+};
+
+// Asegúrate de que esta función esté definida y exportada
+export const createObra = async (nuevaObra) => {
+  const obraRef = await addDoc(collection(db, "OBRAS"), nuevaObra);
+  return { id: obraRef.id, ...nuevaObra };
+};
+
+// Asegúrate de que esta función esté definida y exportada
+export const fetchObrasService = async () => {
+  const querySnapshot = await getDocs(collection(db, "OBRAS"));
+  const obras = querySnapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+  return obras;
+};
+
+// Asegúrate de que esta función esté definida y exportada
+export const obtenerObraPorIdFirestore = async (id) => {
+  const docRef = doc(db, "OBRAS", id);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id: docSnap.id, ...docSnap.data() };
+  }
+  return null;
 };

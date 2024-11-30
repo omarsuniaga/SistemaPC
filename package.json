@@ -13,6 +13,7 @@
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
+    "@quasar/cli": "^2.4.1",
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
     "firebase": "^11.0.1",
@@ -23,13 +24,13 @@
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
-    "@quasar/cli": "^2.4.1",
     "@intlify/vite-plugin-vue-i18n": "^3.3.1",
     "@quasar/app-vite": "^1.9.0",
     "autoprefixer": "^10.4.2",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-plugin-vue": "^9.0.0",
+    "node-sass": "^9.0.0",
     "postcss": "^8.4.14",
     "prettier": "^2.5.1",
     "vite-plugin-checker": "^0.8.0",

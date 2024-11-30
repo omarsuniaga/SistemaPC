@@ -308,13 +308,16 @@ import { useRouter } from "vue-router";
 import { useQuasar } from "quasar";
 import { useProgramaStore } from "../store/programaStore";
 import { useObraStore } from "../store/obraStore";
-import { getAllRepertorios } from "../../Repertorio/services/repertorioService";
-// Props
-const props = defineProps(["obraId"]);
+import { useRepertorioStore } from "src/modulos/Repertorio/store/repertorioStore"; // Nueva importación
+// obtener id por url
 const router = useRouter();
+const id = computed(() => router.currentRoute.value.params.id);
+console.log("id", id.value);
+
 const obraStore = useObraStore();
 const $q = useQuasar();
 const programaStore = useProgramaStore();
+const repertorioStore = useRepertorioStore();
 
 // emitir cerrar editDialog
 const emit = defineEmits(["cerrar"]);
@@ -363,14 +366,14 @@ const guardarMovimiento = () => {
       (m) => m.id === movimientoEditando.value.id
     );
     if (index !== -1) {
-      movimientos.value[index].nombre = movimientoNombre.value;
+      movimientos.value[index].nombre = movimientoNombre.value.trim();
       movimientos.value[index].compases = movimientoCompases.value;
       $q.notify({ message: "Movimiento actualizado.", color: "positive" });
     }
   } else {
     movimientos.value.push({
       id: Date.now() + Math.random(),
-      nombre: movimientoNombre.value,
+      nombre: movimientoNombre.value.trim(),
       compases: movimientoCompases.value,
     });
     $q.notify({ message: "Movimiento agregado.", color: "positive" });
@@ -399,11 +402,11 @@ const guardarInstrumento = () => {
       (i) => i.id === participanteEditando.value.id
     );
     if (index !== -1) {
-      instrumentos.value[index].nombre = participanteNombre.value;
+      instrumentos.value[index].nombre = participanteNombre.value.trim();
       $q.notify({ message: "Instrumento actualizado.", color: "positive" });
     }
   } else {
-    instrumentos.value.push(participanteNombre.value);
+    instrumentos.value.push(participanteNombre.value.trim());
     $q.notify({ message: "Instrumento agregado.", color: "positive" });
   }
   // cerrarDialogoInstrumento();
@@ -433,10 +436,10 @@ const cargarProgramas = async () => {
 // cargar listado de repertorio
 const cargarRepertorio = async () => {
   try {
-    const repertorios = await getAllRepertorios();
-    repertorioOptions.value = repertorios.map((repertorio) => ({
-      value: repertorio.id,
-      label: repertorio.titulo,
+    const repertorios = await repertorioStore.getRepertorios();
+    repertorioOptions.value = repertorios.map((elem) => ({
+      value: elem.id,
+      label: elem.titulo,
     }));
   } catch (error) {
     console.error("Error al cargar los repertorios:", error);
@@ -452,15 +455,18 @@ onMounted(async () => {
   try {
     await cargarProgramas();
     await cargarRepertorio();
+    console.log("ID:", id.value);
 
-    if (!props.obraId) throw new Error("El ID de la obra no está definido.");
-    const obraData = obraStore.getObraById(props.obraId);
+    if (!id.value) throw new Error("El ID de la obra no está definido.");
+    const obraData = await obraStore.getObraById(id.value); // Asegúrate de esperar la promesa
+    if (!obraData) throw new Error("No se encontró la obra.");
+
     obra.value = obraData;
-    titulo.value = obraData.titulo;
-    compositor.value = obraData.compositor;
+    titulo.value = obraData.titulo || "";
+    compositor.value = obraData.compositor || "";
     compases.value = obraData.compases ?? 0; // Asigna 0 solo si no hay un valor válido
     selectedRepertorio.value = obraData.repertorio || [];
-    selectedProgramas.value = obraData.programas.map((p) => p.id);
+    selectedProgramas.value = obraData.programas?.map((p) => p.id) || [];
     instrumentos.value = obraData.instrumentos || [];
     tieneMovimientos.value = obraData.movimientos?.length > 0;
     movimientos.value = obraData.movimientos || [];
@@ -477,7 +483,7 @@ onMounted(async () => {
 // Guardar cambios
 const submitForm = async () => {
   try {
-    if (!titulo.value || !compositor.value) {
+    if (!titulo.value.trim() || !compositor.value.trim()) {
       $q.notify({
         message: "Por favor, completa los campos obligatorios.",
         color: "negative",
@@ -492,8 +498,8 @@ const submitForm = async () => {
       return;
     }
     const obraActualizada = {
-      titulo: titulo.value,
-      compositor: compositor.value,
+      titulo: titulo.value.trim(),
+      compositor: compositor.value.trim(),
       compases: Number(compases.value || 0), // Asegurar que sea un número
       repertorio: selectedRepertorio.value,
       programas: selectedProgramas.value
@@ -510,7 +516,7 @@ const submitForm = async () => {
       updatedAt: new Date().toISOString(),
     };
 
-    obraStore.updateObra(props.obraId, obraActualizada);
+    obraStore.updateObra(id.value, obraActualizada);
     $q.notify({
       message: "Obra actualizada exitosamente.",
       color: "positive",
@@ -523,6 +529,23 @@ const submitForm = async () => {
       message: "Error al actualizar la obra.",
       color: "negative",
     });
+  }
+};
+
+const cargarObra = async (obraId) => {
+  try {
+    const obra = await ObraStore.getObraById(obraId);
+    titulo.value = obra.titulo;
+    compositor.value = obra.compositor;
+    compases.value = obra.compases;
+    tieneMovimientos.value = obra.movimientos.length > 0;
+    movimientos.value = obra.movimientos;
+    instrumentos.value = obra.instrumentos || []; // Asegúrate de que instrumentos esté definido
+    selectedProgramas.value = obra.programas.map((programa) => programa.id);
+    selectedRepertorio.value = obra.repertorio.map((rep) => rep.id); // Asegúrate de que repertorio esté definido
+  } catch (error) {
+    console.error("Error al cargar la obra:", error);
+    $q.notify({ message: "Error al cargar la obra.", color: "negative" });
   }
 };
 </script>

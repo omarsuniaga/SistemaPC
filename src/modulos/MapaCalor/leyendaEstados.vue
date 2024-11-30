@@ -29,7 +29,7 @@
 
 <script setup>
 import { ref } from "vue";
-import { STATE_MAP } from "../MapaCalor/logica/constants.js"; // Ajustar la ruta según tu estructura
+import { STATE_MAP } from "./logica/constants.js"; // Ajustar la ruta según tu estructura
 const coloresEstados = ref(STATE_MAP);
 </script>
 

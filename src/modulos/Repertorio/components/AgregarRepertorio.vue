@@ -17,27 +17,6 @@
                 class="form-input"
             />
 
-            <!-- fecha de creacion -->
-            <q-input
-                v-model="fechaCreacion"
-                label="Fecha de Creación"
-                type="date"
-                outlined
-                dense
-                required
-                class="form-input"
-            />
-
-            <q-input
-                v-model="fechaPresentacion"
-                label="Fecha de Presentación"
-                type="date"
-                outlined
-                dense
-                required
-                class="form-input"
-            />
-
             <q-input
                 v-model="descripcion"
                 label="Descripción"
@@ -82,7 +61,6 @@ const titulo = ref("");
 const fechaPresentacion = ref(""); // Renombrado para mayor claridad
 const descripcion = ref("");
 const programa = ref(""); // Nueva propiedad
-const fechaCreacion = new Date().toISOString(); // Añadir fecha de creación
 // Opciones para el campo Programa
 const programasDisponibles = [
     "Coro",
@@ -92,12 +70,8 @@ const programasDisponibles = [
 
 const submitForm = async () => {
     try {
-        const fechaCreacion = new Date().toISOString(); // Añadir fecha de creación
-
         await repertorioStore.createRepertorio({
             titulo: titulo.value,
-            fechaCreacion, // Incluir fecha de creación
-            fechaPresentacion: fechaPresentacion.value, // Renombrado
             descripcion: descripcion.value,
             programa: programa.value, // Incluir programa en los datos
             obras: [], // Inicializar con un arreglo vacío
@@ -105,7 +79,6 @@ const submitForm = async () => {
 
         // Limpiar el formulario después de enviar
         titulo.value = "";
-        fechaPresentacion.value = "";
         descripcion.value = "";
         programa.value = ""; // Resetear programa
 

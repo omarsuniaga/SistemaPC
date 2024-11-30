@@ -15,7 +15,7 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { defineProps, defineEmits } from "vue";
-import { useCompasStore } from "../MapaCalor/store/compasStore";
+import { useCompasStore } from "./store/compasStore";
 
 const props = defineProps({
   compas: { type: Object, required: true },

@@ -15,15 +15,20 @@ import {
  * @returns {Promise<Array>}
  */
 const obtenerSolicitudesPendientes = async () => {
-  const solicitudes = [];
-  const querySnapshot = await getDocs(collection(db, "USERS"));
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    if (data.status === "pendiente") {
+  try {
+    const solicitudes = [];
+    const solicitudesRef = collection(db, "USERS");
+    const q = query(solicitudesRef, where("status", "==", "pendiente"));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
       solicitudes.push({ id: docSnap.id, ...data });
-    }
-  });
-  return solicitudes;
+    });
+    return solicitudes;
+  } catch (error) {
+    console.error("Error al obtener solicitudes pendientes:", error);
+    throw error;
+  }
 };
 
 /**
@@ -33,12 +38,20 @@ const obtenerSolicitudesPendientes = async () => {
  * @returns {Promise<void>}
  */
 const aprobarSolicitud = async (solicitudId, nuevoRol) => {
-  const userDocRef = doc(db, "USERS", solicitudId);
-  await updateDoc(userDocRef, {
-    role: nuevoRol,
-    status: "aprobado",
-    updatedAt: new Date(),
-  });
+  try {
+    const userDocRef = doc(db, "USERS", solicitudId);
+    await updateDoc(userDocRef, {
+      role: nuevoRol,
+      status: "aprobado",
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error(
+      `Error al aprobar la solicitud con ID ${solicitudId}:`,
+      error
+    );
+    throw error;
+  }
 };
 
 /**
@@ -47,24 +60,39 @@ const aprobarSolicitud = async (solicitudId, nuevoRol) => {
  * @returns {Promise<void>}
  */
 const rechazarSolicitud = async (solicitudId) => {
-  const userDocRef = doc(db, "USERS", solicitudId);
-  await updateDoc(userDocRef, {
-    status: "rechazado",
-    updatedAt: new Date(),
-  });
+  try {
+    const userDocRef = doc(db, "USERS", solicitudId);
+    await updateDoc(userDocRef, {
+      status: "rechazado",
+      updatedAt: new Date(),
+    });
+  } catch (error) {
+    console.error(
+      `Error al rechazar la solicitud con ID ${solicitudId}:`,
+      error
+    );
+    throw error;
+  }
 };
 
-// obtener programas musicales de firebase de la coleccion "PROGRAMAS"
+// Obtener programas musicales de Firebase de la colección "PROGRAMAS"
 export const obtenerProgramasMusicales = async () => {
-  const programas = [];
-  const querySnapshot = await getDocs(collection(db, "PROGRAMAS"));
-  querySnapshot.forEach((docSnap) => {
-    const data = docSnap.data();
-    programas.push({ id: docSnap.id, ...data });
-  });
-  return programas;
+  try {
+    const programas = [];
+    const programasRef = collection(db, "PROGRAMAS");
+    const querySnapshot = await getDocs(programasRef);
+    querySnapshot.forEach((docSnap) => {
+      const data = docSnap.data();
+      programas.push({ id: docSnap.id, ...data });
+    });
+    return programas;
+  } catch (error) {
+    console.error("Error al obtener programas musicales:", error);
+    throw error;
+  }
 };
 
+// Obtener programas de una obra específica
 export const obtenerProgramasDeObra = async (obraId) => {
   try {
     // Paso 1: Obtener la obra por su ID
@@ -89,4 +117,5 @@ export const obtenerProgramasDeObra = async (obraId) => {
     throw error;
   }
 };
+
 export { obtenerSolicitudesPendientes, aprobarSolicitud, rechazarSolicitud };

@@ -1,43 +1,39 @@
 // src/modulos/Obras/routes/obraRoutes.js
 
-import ListaObras from "../../Obras/components/ListaObras.vue";
-import AgregarObra from "../../Obras/components/AgregarObra.vue";
-import EditarObra from "../../Obras/components/EditarObra.vue";
-import DetalleObra from "../../Obras/components/DetalleObra.vue";
-
-const obraRoutes = [
+export default [
   {
-    path: "obras",
-    name: "ListaObras",
-    component: ListaObras,
+    path: "obras", // Ruta relativa, se integrará con el path padre "/"
     meta: {
       requiresAuth: true,
       roles: ["Administrador", "Director", "Maestro"],
     },
-  },
-  {
-    path: "obras/agregar",
-    name: "AgregarObra",
-    component: AgregarObra,
-    meta: { requiresAuth: true, roles: ["Director", "Administrador"] },
-  },
-  {
-    path: "obras/editar/:id",
-    name: "EditarObra",
-    component: EditarObra,
-    meta: { requiresAuth: true, roles: ["Administrador", "Director"] },
-    props: true, // Pasar 'id' como prop al componente
-  },
-  {
-    path: "obras/:id",
-    name: "DetalleObra",
-    component: DetalleObra,
-    meta: {
-      requiresAuth: true,
-      roles: ["Administrador", "Director", "Maestro"],
-    },
-    props: true,
+    children: [
+      {
+        path: "",
+        name: "ListaObras",
+        component: () => import("../components/ListaObras.vue"),
+      },
+      {
+        path: "agregar",
+        name: "AgregarObra",
+        component: () => import("../components/AgregarObra.vue"),
+        meta: { roles: ["Director", "Administrador"] }, // Override de roles específico
+      },
+      {
+        path: "editar/:id",
+        name: "EditarObra",
+        component: () => import("../components/EditarObra.vue"),
+        meta: { roles: ["Administrador", "Director"] },
+        props: true, // Pasar 'id' como prop al componente
+      },
+      {
+        path: ":id",
+        name: "DetalleObra",
+        component: () => import("../components/DetalleObra.vue"),
+        meta: { roles: ["Administrador", "Director", "Maestro"] },
+        props: true, // Pasar 'id' como prop al componente
+      },
+      // Puedes agregar más rutas hijas según sea necesario
+    ],
   },
 ];
-
-export default obraRoutes;

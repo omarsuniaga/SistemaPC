@@ -1,7 +1,7 @@
 // src/modulos/Obras/index.js
 
 // Importar rutas, store y servicios del módulo de Obras
-import obraRoutes from "./MapaCalor/router/obraRoutes";
+import obraRoutes from "../MapaCalor/router/obraRoutes";
 import { useObraStore } from "./store/obraStore";
 import * as obraService from "./services/obraService";
 

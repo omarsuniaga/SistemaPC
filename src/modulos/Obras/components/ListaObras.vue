@@ -1,19 +1,13 @@
 <template>
   <q-page class="q-pa-md">
     <div class="page-header">
-      <h2 class="page-title">Listado de Obras</h2>
+      <h4 class="page-title">Listado de Obras</h4>
       <p class="page-subtitle">Gestiona las obras registradas</p>
     </div>
 
     <!-- Botón para agregar nueva obra -->
     <div class="add-button-container">
-      <q-btn
-        fab
-        icon="add"
-        color="primary"
-        @click="goToAgregarObra"
-        aria-label="Agregar nueva obra"
-      />
+      <q-btn icon="add" color="primary" @click="goToAgregarObra" />
     </div>
 
     <!-- Tabla de obras -->
@@ -99,7 +93,7 @@ import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useObraStore } from "../store/obraStore";
 import { useQuasar } from "quasar";
-import VistaMapaCalor from "../MapaCalor/MapaCalor.vue";
+import VistaMapaCalor from "../../MapaCalor/MapaCalor.vue";
 import EditarObra from "./EditarObra.vue";
 
 const obraStore = useObraStore();
@@ -116,18 +110,18 @@ const loading = ref(true);
 const columns = [
   { name: "index", label: "#", align: "left", field: (row) => row.index },
   { name: "titulo", label: "Título", align: "left", field: "titulo" },
-  {
-    name: "compases",
-    label: "Compases",
-    align: "center",
-    field: (row) => row.compases,
-  },
-  {
-    name: "porcentajeMontaje",
-    label: "Montaje %",
-    align: "center",
-    field: "porcentajeMontaje",
-  },
+  // {
+  //   name: "compases",
+  //   label: "Compases",
+  //   align: "center",
+  //   field: (row) => row.compases,
+  // },
+  // {
+  //   name: "porcentajeMontaje",
+  //   label: "Montaje %",
+  //   align: "center",
+  //   field: "porcentajeMontaje",
+  // },
   { name: "actions", label: "Acciones", align: "center" },
 ];
 
@@ -234,8 +228,13 @@ onMounted(fetchObras);
 
 .add-button-container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: 30px;
+  right: 10px;
+  z-index: 1;
+  /* sombra */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  /* transparencia */
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .actions-cell q-btn {

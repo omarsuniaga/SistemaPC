@@ -1,56 +1,56 @@
 // src/router/routes.js
+
 import MainLayout from "layouts/MainLayout.vue";
 import AuthLayout from "layouts/AuthLayout.vue";
 import IndexPage from "pages/IndexPage.vue";
 import ErrorNotFound from "pages/ErrorNotFound.vue";
-import UnauthorizedHome from "pages/UnauthorizedHome.vue";
-
-import DirectorHome from "src/pages/Director/DirectorHome.vue";
-import AdminHome from "src/pages/Admin/AdminHome.vue";
-import MaestroHome from "src/pages/Maestro/MaestroHome.vue";
-import AlumnoHome from "src/pages/Alumno/AlumnoHome.vue";
+import UnauthorizedHome from "pages/Auth/UnauthorizedHome.vue";
 
 // Importar rutas de módulos
 import repertorioRoutes from "../modulos/Repertorio/routes/repertorioRoutes";
 import obraRoutes from "../modulos/Obras/routes/obraRoutes";
+import mapaCompasRoutes from "../modulos/MapaCalor/router/MapaCompas"; // Asegúrate de importar otros módulos
 
 const routes = [
   {
     path: "/",
     component: MainLayout,
+    meta: { requiresAuth: true }, // Requiere autenticación para todas las rutas hijas
     children: [
       {
         path: "",
         name: "Home",
         component: IndexPage,
-        meta: { requiresAuth: true },
       },
       {
         path: "director",
         name: "DirectorHome",
-        component: DirectorHome,
-        meta: { requiresAuth: true, roles: ["Director"] },
+        component: () => import("pages/Roles/Director/DirectorHome.vue"),
+        meta: { roles: ["Director"] },
       },
       {
         path: "admin",
         name: "AdminHome",
-        component: AdminHome,
-        meta: { requiresAuth: true, roles: ["Administrador"] },
+        component: () => import("pages/Roles/Admin/AdminHome.vue"),
+        meta: { roles: ["Administrador"] },
       },
       {
         path: "maestro",
         name: "MaestroHome",
-        component: MaestroHome,
-        meta: { requiresAuth: true, roles: ["Maestro"] },
+        component: () => import("pages/Roles/Maestro/MaestroHome.vue"),
+        meta: { roles: ["Maestro"] },
       },
       {
         path: "alumno",
         name: "AlumnoHome",
-        component: AlumnoHome,
-        meta: { requiresAuth: true, roles: ["Alumno", "Tutor"] },
+        component: () => import("pages/Roles/Director/DirectorHome.vue"),
+        meta: { roles: ["Alumno", "Tutor"] },
       },
-      ...repertorioRoutes, // Rutas del módulo Repertorio
-      ...obraRoutes, // Rutas del módulo Obras
+      // Integración de rutas de módulos
+      ...repertorioRoutes,
+      ...obraRoutes,
+      ...mapaCompasRoutes,
+      // ...otros módulos
     ],
   },
   {
@@ -60,12 +60,12 @@ const routes = [
       {
         path: "login",
         name: "Login",
-        component: () => import("pages/UserLogin.vue"),
+        component: () => import("pages/Auth/UserLogin.vue"),
       },
       {
         path: "register",
         name: "Register",
-        component: () => import("pages/UserRegister.vue"),
+        component: () => import("pages/Auth/UserRegister.vue"),
       },
       {
         path: "unauthorized",
