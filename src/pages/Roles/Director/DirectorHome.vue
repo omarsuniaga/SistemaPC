@@ -1,22 +1,32 @@
 <!-- src/pages/Director/DirectorHome.vue -->
 <template>
-  <q-page class="q-pa-lg director-page">
+  <q-page class="q-pa-md director-page">
     <!-- Header de la Página -->
-    <div class="header-container">
-      <h1 class="title">Panel del Director</h1>
-      <div class="button-container">
+    <div class="header-container q-mb-lg">
+      <q-banner class="bg-primary text-white shadow-2 rounded-borders">
+        <template v-slot:avatar>
+          <q-icon name="director_mode" size="xl" />
+        </template>
+        <div class="text-h5">Panel del Director</div>
+      </q-banner>
+
+      <div
+        class="button-group q-mt-md flex flex-wrap justify-start items-center gap-4"
+      >
         <q-btn
           label="Gestionar Repertorio"
-          color="primary"
+          color="secondary"
           @click="goToRepertorio"
-          class="gestion-repertorio-btn q-mr-sm"
+          class="gestion-repertorio-btn"
           icon="library_music"
+          unelevated
         />
         <q-btn
           label="Ver Obras"
-          color="secondary"
+          color="accent"
           @click="goToObras"
           icon="theaters"
+          unelevated
         />
         <!-- Icono de Notificación de Solicitudes Pendientes -->
         <q-btn
@@ -25,6 +35,7 @@
           class="notification-btn"
           @click="openSolicitudesDialog"
           v-if="solicitudes.length > 0"
+          aria-label="Ver Solicitudes Pendientes"
         >
           <q-badge
             color="red"
@@ -38,11 +49,30 @@
     </div>
 
     <!-- Contenido Principal -->
-    <h2 class="subtitle">Bienvenido</h2>
+    <div class="content-container">
+      <q-card class="shadow-2 rounded-borders bg-white">
+        <q-card-section>
+          <h2 class="text-h6">Bienvenido, {{ userStore.user?.name }}</h2>
+          <p class="text-subtitle2">
+            Gestiona las obras y el repertorio de la institución.
+          </p>
+        </q-card-section>
+        <q-separator />
+        <q-card-section>
+          <q-img
+            src="https://images.unsplash.com/photo-1606787366850-de6330128bfc?fit=crop&w=800&q=80"
+            alt="Director Dashboard"
+            class="my-image"
+            ratio="16/9"
+            spinner-color="primary"
+          />
+        </q-card-section>
+      </q-card>
+    </div>
 
     <!-- Popup Modal para Solicitudes Pendientes -->
     <q-dialog v-model="solicitudesDialog" persistent>
-      <q-card style="min-width: 350px">
+      <q-card class="shadow-2 rounded-borders" style="min-width: 350px">
         <q-card-section class="q-pt-none">
           <div class="text-h6">Solicitudes Pendientes</div>
         </q-card-section>
@@ -52,14 +82,21 @@
         <q-card-section>
           <div v-if="solicitudes.length > 0">
             <q-list bordered>
-              <q-item v-for="solicitud in solicitudes" :key="solicitud.id">
+              <q-item
+                v-for="solicitud in solicitudes"
+                :key="solicitud.id"
+                clickable
+                class="hover-bg"
+              >
                 <q-item-section avatar>
-                  <q-icon name="person" />
+                  <q-avatar>
+                    <q-icon name="person" />
+                  </q-avatar>
                 </q-item-section>
                 <q-item-section>
                   <div class="text-subtitle2">{{ solicitud.email }}</div>
                   <div class="text-caption">
-                    Rol Solicitado: {{ solicitud.role }}
+                    Rol Solicitado: <strong>{{ solicitud.role }}</strong>
                   </div>
                 </q-item-section>
                 <q-item-section side>
@@ -121,9 +158,6 @@ const solicitudesDialog = ref(false);
 
 // Lista de solicitudes pendientes
 const solicitudes = ref([]);
-
-// Roles disponibles para asignar
-const rolesDisponibles = ["Maestro", "Alumno", "Administrador"];
 
 // Funciones de navegación
 const goToRepertorio = () => {
@@ -224,15 +258,15 @@ const rechazarSolicitud = async (solicitudId) => {
 
 <style scoped>
 .director-page {
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
+/* Estilos para el Header */
 .header-container {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  margin-bottom: 2rem;
 }
 
 @media (min-width: 600px) {
@@ -256,16 +290,11 @@ const rechazarSolicitud = async (solicitudId) => {
   }
 }
 
-.button-container {
+/* Estilos para el Grupo de Botones */
+.button-group {
   display: flex;
   align-items: center;
-  margin-top: 1rem;
-}
-
-@media (min-width: 600px) {
-  .button-container {
-    margin-top: 0;
-  }
+  flex-wrap: wrap;
 }
 
 .gestion-repertorio-btn {
@@ -273,13 +302,22 @@ const rechazarSolicitud = async (solicitudId) => {
   font-weight: 500;
 }
 
-.subtitle {
-  font-size: 1.5rem;
-  font-weight: 500;
-  color: #34495e;
-  margin-bottom: 1rem;
+/* Estilos para el Contenido Principal */
+.content-container {
+  display: flex;
+  justify-content: center;
 }
 
+.q-card {
+  width: 100%;
+  max-width: 800px;
+}
+
+.my-image {
+  border-radius: 8px;
+}
+
+/* Estilos para Solicitudes */
 .no-solicitudes {
   color: #888;
   text-align: center;
@@ -287,19 +325,35 @@ const rechazarSolicitud = async (solicitudId) => {
   margin-top: 2rem;
 }
 
+/* Estilos para la Notificación */
 .notification-btn {
   position: relative;
-  margin-left: 1rem;
 }
 
+/* Estilos para el Dialog */
+.q-dialog .q-card {
+  border-radius: 12px;
+}
+
+/* Hover para elementos de la lista */
+.hover-bg:hover {
+  background-color: #f0f0f0;
+}
+
+/* Estilos para el Banner */
+.q-banner {
+  border-radius: 8px;
+}
+
+/* Responsividad para el grupo de botones */
 @media (max-width: 600px) {
-  .button-container {
+  .button-group {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .button-container .q-btn {
-    margin-bottom: 0.5rem;
+  .button-group .q-btn {
+    width: 100%;
   }
 }
 </style>

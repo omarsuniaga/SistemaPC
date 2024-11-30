@@ -125,3 +125,6 @@ export const useRepertorioStore = defineStore("repertorios", {
         },
     },
 });
+// ...código existente...
+// Si necesitas agregar acciones adicionales, hazlo aquí.
+// ...código existente...

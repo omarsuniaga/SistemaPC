@@ -263,7 +263,7 @@
                     <h3>Seleccionar Obras para el Repertorio</h3>
                     <q-list bordered>
                         <q-item
-                            v-for="obra in Obras"
+                            v-for="obra in obrasDisponibles"
                             :key="obra.id"
                             clickable
                             @click="toggleObraSeleccionada(obra)"
@@ -306,16 +306,14 @@ const selectedRepertorio = ref(null);
 const repertorioDialog = ref(false);
 const agregarObrasDialog = ref(false);
 const Obras = computed(() => obraStore.obras);
+const obrasDisponibles = ref([]); // Nueva propiedad reactiva para obras filtradas
 const obraSeleccionada = ref({});
 const repertorioSeleccionado = ref(null); // Para ver y eliminar
 const dialogoVerRepertorio = ref(false);
 const dialogoEditarRepertorio = ref(false);
 const dialogoConfirmarEliminar = ref(false);
 const repertorioEditar = ref(null);
-const obraSeleccionadaTemp = ref({}); // Añadido para manejar selecciones
-const fechaCreacion = ref(new Date().toISOString()); // Añadir fecha de creación
-
-// Nuevo estado para seleccionar repertorio al agregar obra
+const programas = ["Coro", "Orquesta"]; // Programas disponibles
 const dialogoSeleccionarRepertorio = ref(false);
 const seleccionRepertorioId = ref(null);
 
@@ -349,11 +347,6 @@ const columns = [
     },
     { name: "actions", label: "Acciones", align: "center" },
 ];
-const programas = [
-    "Coro",
-    "Orquesta",
-    // ...añadir más programas según sea necesario
-];
 
 // Función para formatear Timestamp a 'yyyy-MM-dd'
 const formatDate = (timestamp) => {
@@ -384,7 +377,8 @@ const loadRepertorios = async () => {
                         Array.isArray(obra.Repertorio) &&
                         obra.Repertorio.includes(repertorio.titulo)
                 );
-                Obras.value = Obras.value.filter(
+                obrasDisponibles.value = Obras.value.filter(
+                    // Filtrar obras que no pertenecen al repertorio actual
                     (obra) => !obrasRelacionadas.some((o) => o.id === obra.id)
                 );
                 return {
@@ -399,6 +393,7 @@ const loadRepertorios = async () => {
         );
     } else {
         repertorios.value = [];
+        obrasDisponibles.value = [];
     }
 };
 
@@ -554,7 +549,7 @@ const openAgregarObrasModalEditar = () => {
 };
 
 const addObrasToRepertorioEditar = () => {
-    const selectedObras = Obras.value.filter(
+    const selectedObras = obrasDisponibles.value.filter(
         (obra) => obraSeleccionada.value[obra.id]
     );
 
@@ -612,6 +607,7 @@ const cerrarDialogoSeleccionarRepertorio = () => {
 };
 
 onMounted(loadRepertorios);
+onMounted(() => obraStore.fetchObras());
 </script>
 
 <style scoped>
